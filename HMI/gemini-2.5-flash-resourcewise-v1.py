@@ -4,7 +4,7 @@ import os
 import sys
 import re # Import regex for parsing
 
-API_KEY = "AIzaSyD_Pp19LfP3OzHuBtu96_Q6hP13wMV7uxQ"
+API_KEY = os.environ["GEMINI_API_KEY"]
 
 if not API_KEY:
     print("Error: GEMINI_API_KEY environment variable not set.")

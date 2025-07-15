@@ -17,6 +17,7 @@ from scenedetect import open_video, SceneManager
 from scenedetect.detectors import ContentDetector
 
 # --- CONFIGURATION ---
+api_key = os.environ["GEMINI_API_KEY"]
 SOURCE_VIDEO_FILE = os.path.join("static", "basketball_highlights.mp4")
 # CHUNK_DURATION_SECONDS is no longer needed as we use scenes
 OUTPUT_CLIPS_DIR = "output_clips_nba"
@@ -99,7 +100,7 @@ def process_video_file_thread(source_path: str):
 
 def gemini_video_analysis(clip_path: str) -> str:
     """Analyzes a video chunk using the new, more detailed prompt."""
-    genai.configure(api_key="AIzaSyA6uP61fBK7dMirSEmAGwJpuGrKqsOIpX4")
+    genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-1.5-flash")
     try:
         with open(clip_path, 'rb') as f: video_bytes = f.read()
@@ -243,7 +244,7 @@ def stream():
             yield ": keep-alive\n\n"; time.sleep(1)
     return Response(event_stream(), mimetype='text/event-stream')
 def start_background_tasks():
-    genai.configure(api_key="AIzaSyDUngYlgwM2HVLl4XQW1Px6-jRxDLwnEFU")
+    genai.configure(api_key=api_key)
     os.makedirs(OUTPUT_CLIPS_DIR, exist_ok=True)
     os.makedirs(SCORES_CLIPS_DIR, exist_ok=True); os.makedirs(BLOCKS_CLIPS_DIR, exist_ok=True)
     os.makedirs(SHOT_MISSES_CLIPS_DIR, exist_ok=True); os.makedirs(TURNOVERS_CLIPS_DIR, exist_ok=True)

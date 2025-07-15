@@ -14,7 +14,8 @@ import threading
 import queue # For thread-safe communication
 
 # Configure Google Generative AI with your API key
-genai.configure(api_key="AIzaSyA2YXUaYM3lwc0msb08ANZ-a8FbvpV--PE") # REPLACE WITH YOUR ACTUAL KEY
+api_key = os.environ["GEMINI_API_KEY"]
+genai.configure(api_key=api_key)
 vision_model = genai.GenerativeModel("gemini-2.0-flash") # Or "gemini-1.5-pro" if you have access
 
 # --- Your realstream and analyze_frame_with_gemini functions (no change needed) ---
