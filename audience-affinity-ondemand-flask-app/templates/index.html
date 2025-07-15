@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GenAI Prompt-to-Audience Engine</title>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <style>
+        /* All CSS is correct and unchanged */
+        :root { --primary-color: #4f46e5; --accent-color: #10b981; --bg-light: #f9fafb; --border-color: #d1d5db; --text-dark: #111827; --text-muted: #6b7280; --bg-white: #ffffff; }
+        body { font-family: system-ui, -apple-system, sans-serif; background-color: var(--bg-light); margin: 0; padding: 0; overflow: hidden; }
+        body.modal-open { overflow: hidden; }
+        .container { display: grid; grid-template-columns: 6fr 4fr; height: 100vh; }
+        .left-pane, .right-pane { padding: 20px; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
+        .right-pane { background-color: var(--bg-white); border-left: 1px solid var(--border-color); }
+        #chart { flex-grow: 1; min-height: 0; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 1rem; }
+        #search-input { flex-grow: 1; padding: 12px 15px; font-size: 1rem; border: 1px solid var(--border-color); border-radius: 8px; }
+        #search-button { padding: 12px 25px; font-size: 1rem; font-weight: 600; background-color: var(--primary-color); color: var(--bg-white); border: none; border-radius: 8px; cursor: pointer; }
+        #search-button:disabled { background-color: #9ca3af; }
+        .results-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; margin-bottom: 1rem; }
+        #results-count { font-weight: 600; }
+        #activate-button { padding: 8px 15px; font-size: 0.9rem; background-color: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; display: none; }
+        #results-area { flex-grow: 1; overflow-y: auto; }
+        .user-card { border-bottom: 1px solid var(--border-color); padding: 10px 5px; }
+        .user-card h3 { margin: 0 0 5px 0; color: var(--primary-color); font-size: 1rem; }
+        .user-card p { margin: 2px 0; font-size: 0.9rem; color: var(--text-muted); }
+        .genai-prompt { background-color: #eff6ff; border: 1px solid #bfdbfe; color: #374151; padding: 10px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
+        .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(17, 24, 39, 0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background-color: var(--bg-white); padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 90%; position: relative; }
+        .campaign-modal { max-width: 650px; }
+        .detail-card { max-width: 450px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 10px; }
+        .modal-header h2 { text-align: left; margin: 0; font-size: 1.3rem; }
+        .modal-close-btn { background: none; border: none; font-size: 2rem; font-weight: 300; color: var(--text-muted); cursor: pointer; line-height: 1; }
+        .modal-explanation { font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 15px; line-height: 1.4; }
+        #campaign-charts { display: flex; gap: 25px; align-items: flex-start; }
+        #gauge-chart, #line-chart { flex: 1 1 50%; min-width: 0; height: 180px; }
+        .detail-card .modal-body p { margin: 8px 0; font-size: 1rem; }
+        .detail-card .modal-body b { color: var(--text-dark); }
+        h2 { text-align:center; margin:0 0 10px 0; font-size: 1.5rem; }
+        .chart-explanation {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: left; /* Changed from 'center' for better readability */
+            margin-bottom: 15px;
+            line-height: 1.5;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        .chart-explanation ul {
+            padding-left: 20px;
+            margin: 5px 0;
+        }
+        .chart-explanation p {
+            margin: 5px 0;
+        }
+        #open-explanation-modal {
+            color: var(--primary-color);
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .query-example {
+            font-size: 80%;
+        }
+        .genai-feature {
+            padding: 15px;
+            background-color: #f9fafb;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        .genai-feature h4 {
+            margin: 0 0 10px 0;
+            color: var(--text-dark);
+            font-size: 1rem;
+        }
+        .genai-feature p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 0;
+        }
+        #generate-ad-copy-btn {
+            margin-top: 10px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            opacity: 0.8;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #generate-ad-copy-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        #related-queries-list span {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 15px;
+            margin: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        #related-queries-list span:hover {
+            background-color: #dee2e6;
+        }
+        .ad-copy-card {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .ad-copy-card:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .ad-copy-card h5 {
+            margin: 0 0 5px;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="left-pane">
+        <h2>Audience Universe Map</h2>
+        <div class="chart-explanation">
+            This map visualizes all customers. Click a highlighted dot for details, or <a href="#" id="open-explanation-modal">Learn more</a> for a guide to this chart.
+        </div>
+        <div id="chart"></div>
+    </div>
+    <div class="right-pane">
+        <h1>Prompt-to-Audience</h1>
+        <p style="margin:0 0 15px 0; color: var(--text-muted);">Define a segment using natural language.</p>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="e.g., 'tech travelers' or 'foodies who hike'">
+            <button id="search-button">Create Segment</button>
+        </div>
+        <div class="sample-queries">
+            <strong>Try an example:</strong><br/>
+            <span class="query-example">tech travelers</span><br/>
+            <span class="query-example">foodies who hike</span><br/>
+            <span class="query-example">engineers interested in photography</span><br/>
+        </div>
+        <div id="results-area">
+            <div id="genai-prompt-container" style="display:none;">
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:5px;">Your prompt was enhanced by our GenAI model for better results:</p>
+                <div id="genai-prompt" class="genai-prompt"></div>
+            </div>
+            <div id="persona-container" class="genai-feature" style="display:none;">
+                <h4>Generated Segment Persona</h4>
+                <h3 id="persona-name" style="color: var(--primary-color); margin: 0 0 5px 0;"></h3>
+                <p id="persona-summary"></p>
+                <button id="generate-ad-copy-btn" disabled>Generate Campaign Starters...</button>
+            </div>
+            <div class="results-header">
+                <span id="results-count">Results will appear here...</span>
+                <button id="activate-button">Activate Segment</button>
+            </div>
+            <div id="results-list"></div>
+            <div id="related-queries-container" class="genai-feature" style="display:none;">
+                <h4>Related Segments to Explore</h4>
+                <div id="related-queries-list"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="campaign-modal-backdrop" class="modal-backdrop">
+    <div class="modal-content campaign-modal">
+        <div class="modal-header">
+            <h2 id="campaign-status">Live Campaign Monitor</h2>
+            <button id="campaign-modal-close-btn" class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="modal-explanation">
+                This simulates a live campaign. The <b>Reach</b> gauge shows the percentage of the segment delivered to activation channels. The <b>Engagement</b> chart simulates a realistic trend based on the segment's predicted interest.
+            </p>
+            <div id="campaign-charts">
+                <div id="gauge-chart"></div>
+                <div id="line-chart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="detail-modal-backdrop" class="modal-backdrop">
+    <div class="modal-content detail-card">
+        <div class="modal-header">
+            <h2 id="detail-name">User Details</h2>
+            <button id="detail-modal-close-btn" class="modal-close-btn">&times;</button>
+        </div>
+        <div id="detail-modal-body" class="modal-body"></div>
+    </div>
+</div>
+
+<div id="explanation-modal-backdrop" class="modal-backdrop">
+    <div class="modal-content campaign-modal"> <div class="modal-header">
+        <h2>About the Audience Map</h2>
+        <button id="explanation-modal-close-btn" class="modal-close-btn">&times;</button>
+    </div>
+        <div class="modal-body">
+            <div class="chart-explanation" style="border-bottom: none; padding-bottom: 0;">
+                <p>
+                    The <b>Audience Universe Map</b> provides a bird's-eye view of your entire customer base. Each dot is an individual customer, and they are automatically grouped with others who behave similarly based on their data profile.
+                </p>
+                <ul>
+                    <li><b>Engagement Style (X-Axis):</b> Separates users by <i>how</i> they consume content. Segments on the right prefer visual media (video/social), while those on the left prefer long-form content (podcasts/articles).</li>
+                    <li><b>Behavioral Profile (Y-Axis):</b> Reflects transactional behavior. Users positioned higher have a greater purchase frequency or higher spending habits.</li>
+                </ul>
+                <hr>
+                <p style="text-align: center; font-weight: 600; color: var(--primary-color);">How to Monetize This Insight</p>
+                <ul>
+                    <li><b>Precision Targeting:</b> A high-value segment (e.g., top-right quadrant) can be targeted with a high-ROI video ad campaign, minimizing wasted ad spend.</li>
+                    <li><b>Content Strategy:</b> Discovering a large segment on the left justifies investment in new content formats, like podcasts, creating new engagement channels.</li>
+                    <li><b>Data Monetization:</b> These unique segment profiles can be anonymized and offered as a premium data product to advertising partners.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ad-copy-modal-backdrop" class="modal-backdrop">
+    <div class="modal-content campaign-modal"> <div class="modal-header">
+        <h2>Generated Campaign Starters</h2>
+        <button id="ad-copy-modal-close-btn" class="modal-close-btn">&times;</button>
+    </div>
+        <div id="ad-copy-modal-body" class="modal-body" style="overflow-y: auto; max-height: 60vh;">
+        </div>
+    </div>
+</div>
+
+<script>
+    // Get references to all elements
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+    const resultsList = document.getElementById('results-list');
+    const resultsCount = document.getElementById('results-count');
+    const activateButton = document.getElementById('activate-button');
+    const genaiContainer = document.getElementById('genai-prompt-container');
+    const genaiPromptDiv = document.getElementById('genai-prompt');
+    const chartDiv = document.getElementById('chart');
+    const campaignModalBackdrop = document.getElementById('campaign-modal-backdrop');
+    const campaignModalCloseBtn = document.getElementById('campaign-modal-close-btn');
+    const detailModalBackdrop = document.getElementById('detail-modal-backdrop');
+    const detailModalCloseBtn = document.getElementById('detail-modal-close-btn');
+    const detailName = document.getElementById('detail-name');
+    const detailBody = document.getElementById('detail-modal-body');
+
+    const explanationModalBackdrop = document.getElementById('explanation-modal-backdrop');
+    const explanationModalCloseBtn = document.getElementById('explanation-modal-close-btn');
+    const openExplanationLink = document.getElementById('open-explanation-modal');
+
+    const personaContainer = document.getElementById('persona-container');
+    const personaName = document.getElementById('persona-name');
+    const personaSummary = document.getElementById('persona-summary');
+    const generateAdCopyBtn = document.getElementById('generate-ad-copy-btn');
+    const relatedQueriesContainer = document.getElementById('related-queries-container');
+    const relatedQueriesList = document.getElementById('related-queries-list');
+    const adCopyModalBackdrop = document.getElementById('ad-copy-modal-backdrop');
+    const adCopyModalCloseBtn = document.getElementById('ad-copy-modal-close-btn');
+    const adCopyModalBody = document.getElementById('ad-copy-modal-body');
+
+    // Global variables
+    let campaignInterval;
+    let currentSegmentMetrics = null;
+    let currentSegmentUsers = [];
+    let currentPersona = null;
+
+    // Initial plot rendering
+    const all_users_vis = {{ all_users_vis | tojson }};
+    const base_trace = {
+        x: all_users_vis.map(u=>u.pca1),
+        y: all_users_vis.map(u=>u.pca2),
+        customdata: all_users_vis.map(u => [u.name, u.job, u.city]),
+        hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>%{customdata[2]}<extra></extra>',
+        mode: 'markers', type: 'scatter',
+        marker: { color: '#d1d5db', size: 5, opacity: 0.7 }
+    };
+    const layout = {
+        margin: { t: 20, l: 90, r: 80, b: 70 }, showlegend: false,
+        xaxis: { title: 'Engagement Style', zeroline: true, showticklabels: true },
+        yaxis: { title: 'Behavioral Profile', zeroline: true, showticklabels: true },
+        annotations: [
+            { x: 0, y: -0.15, xref: 'paper', yref: 'paper', text: '← More Podcast/Audio Focused', showarrow: false, font: { size: 11, color: 'var(--text-muted)'}, xanchor: 'left' },
+            { x: 1, y: -0.15, xref: 'paper', yref: 'paper', text: 'More Video/Social Focused →', showarrow: false, font: { size: 11, color: 'var(--text-muted)'}, xanchor: 'right' },
+            { x: -0.15, y: 1, xref: 'paper', yref: 'paper', text: '↑ Higher Purchase Rate', showarrow: false, font: { size: 11, color: 'var(--text-muted)'}, xanchor: 'center', yanchor: 'top', textangle: -90 },
+            { x: -0.15, y: 0, xref: 'paper', yref: 'paper', text: '↓ Lower Purchase Rate', showarrow: false, font: { size: 11, color: 'var(--text-muted)'}, xanchor: 'center', yanchor: 'bottom', textangle: -90 }
+        ]
+    };
+    Plotly.newPlot(chartDiv, [base_trace], layout, {responsive: true});
+
+    // Main Search Function
+    const performSearch = () => {
+        const query = searchInput.value; if (!query) return;
+        searchButton.disabled = true; searchButton.textContent = 'Searching...';
+        resultsList.innerHTML = '';
+        resultsCount.textContent = 'Finding matching users...';
+        activateButton.style.display = 'none';
+        genaiContainer.style.display = 'none';
+        personaContainer.style.display = 'none'; // Hide old persona
+        relatedQueriesContainer.style.display = 'none'; // Hide old queries
+        generateAdCopyBtn.disabled = true;
+
+        fetch('/search', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: query, count: 25 }) })
+        .then(response => response.json())
+        .then(data => {
+            currentSegmentMetrics = data.segment_metrics;
+            currentSegmentUsers = data.users;
+            resultsCount.textContent = `${data.users.length} users found in this segment.`;
+            genaiPromptDiv.textContent = data.enhanced_query;
+            genaiContainer.style.display = 'block';
+
+            // Populate Persona
+            if (data.persona && data.persona.segment_name) {
+                currentPersona = data.persona;
+                personaName.textContent = data.persona.segment_name;
+                personaSummary.textContent = data.persona.persona_summary;
+                personaContainer.style.display = 'block';
+                generateAdCopyBtn.disabled = false;
+            }
+
+            // Populate User List
+            data.users.forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'user-card';
+                card.innerHTML = `<h3>${user.name}</h3><p><b>Job:</b> ${user.job}</p><p><b>Interests:</b> ${user.interests}</p>`;
+                resultsList.appendChild(card);
+            });
+
+            // Populate Related Queries
+            relatedQueriesList.innerHTML = '';
+            if (data.related_queries && data.related_queries.length > 0) {
+                data.related_queries.forEach(q => {
+                    const querySpan = document.createElement('span');
+                    querySpan.textContent = q;
+                    querySpan.onclick = () => {
+                        searchInput.value = q;
+                        performSearch();
+                    };
+                    relatedQueriesList.appendChild(querySpan);
+                });
+                relatedQueriesContainer.style.display = 'block';
+            }
+
+            // Update Chart and Activate Button
+            const segment_trace = {
+                x: data.users.map(u => u.pca1), y: data.users.map(u => u.pca2),
+                customdata: data.users.map(u => [u.name, u.job, u.city]),
+                hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>%{customdata[2]}<extra></extra>',
+                mode: 'markers', type: 'scatter', marker: { color: 'var(--primary-color)', size: 8 }
+            };
+            Plotly.react(chartDiv, [base_trace, segment_trace], layout);
+            if (data.users.length > 0) { activateButton.style.display = 'block'; }
+        })
+        .catch(error => { console.error('Error:', error); resultsCount.textContent = 'An error occurred.'; })
+        .finally(() => { searchButton.disabled = false; searchButton.textContent = 'Create Segment'; });
+    };
+
+    // Modal Control Functions
+    const activateSegment = () => {
+        campaignModalBackdrop.style.display = 'flex';
+        document.body.classList.add('modal-open');
+        drawGauge(0);
+        drawLiveChart();
+        let tick = 0; let progress = 0;
+        campaignInterval = setInterval(() => {
+            tick++;
+            progress += Math.random() * 20;
+            if (progress >= 100) { progress = 100; clearInterval(campaignInterval); }
+            drawGauge(progress);
+            updateLiveChart(tick);
+        }, 1200);
+    };
+
+    const closeCampaignModal = () => {
+        clearInterval(campaignInterval);
+        campaignModalBackdrop.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    };
+
+    const closeDetailModal = () => {
+        detailModalBackdrop.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    };
+
+    // Chart Drawing Functions
+    let initialClicks;
+    function drawGauge(value) { /* ... */ }
+    function drawLiveChart() { /* ... */ }
+    function updateLiveChart(tick) { /* ... */ }
+
+    // Event Listeners
+    searchButton.addEventListener('click', performSearch);
+    searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
+    activateButton.addEventListener('click', activateSegment);
+    campaignModalCloseBtn.addEventListener('click', closeCampaignModal);
+    campaignModalBackdrop.addEventListener('click', (e) => { if (e.target === campaignModalBackdrop) { closeCampaignModal(); } });
+    detailModalCloseBtn.addEventListener('click', closeDetailModal);
+    detailModalBackdrop.addEventListener('click', (e) => { if (e.target === detailModalBackdrop) { closeDetailModal(); } });
+
+    // --- FIX: Corrected hover logic ---
+    chartDiv.on('plotly_hover', (data) => {
+        const point = data.points[0];
+        if (point.curveNumber === 1) { // 0 is base trace, 1 is segment trace
+            chartDiv.style.cursor = 'pointer';
+        } else {
+            chartDiv.style.cursor = 'default'; // Reset cursor if not on the segment
+        }
+    });
+    chartDiv.on('plotly_unhover', (data) => {
+        chartDiv.style.cursor = 'default'; // Always reset when mouse leaves a point
+    });
+
+    chartDiv.on('plotly_click', (data) => {
+        const point = data.points[0];
+        if (point.curveNumber === 1 && currentSegmentUsers.length > 0) {
+            const userData = currentSegmentUsers[point.pointNumber];
+            if (userData) {
+                detailName.textContent = userData.name;
+                detailBody.innerHTML = `<p><b>Job:</b> ${userData.job}</p><p><b>Location:</b> ${userData.city}</p><p><b>Interests:</b> ${userData.interests}</p><hr><p style="font-size:0.8rem; color:var(--text-muted)">${userData.profile_text}</p>`;
+                detailModalBackdrop.style.display = 'flex';
+                document.body.classList.add('modal-open');
+            }
+        }
+    });
+
+    // The full definitions of these functions are included for completeness
+    function drawGauge(value) {
+        const data = [{ domain: { x: [0, 1], y: [0, 1] }, value: value, title: { text: "Audience Reach", font: { size: 16 } }, type: "indicator", mode: "gauge+number", gauge: { axis: { range: [null, 100] }, bar: {color: 'var(--accent-color)'}, shape: "angular" } }];
+        const gaugeLayout = { margin: { t: 40, b: 20, l: 30, r: 30 }, height: 180 };
+        Plotly.newPlot('gauge-chart', data, gaugeLayout, {responsive: true});
+    }
+    function drawLiveChart() {
+        const propensity = currentSegmentMetrics ? currentSegmentMetrics.engagement_propensity : 1.0;
+        initialClicks = Math.floor((Math.random() * 10 + 10) * propensity);
+        const trace = [{ y: [initialClicks], x: [0], mode: 'lines+markers', line: {color: 'var(--primary-color)', shape: 'spline' }, type: 'scatter' }];
+        const lineLayout = { title: {text: 'Live Engagement', font: {size: 16}}, margin: {t:50, l:40, r:20, b:40}, height: 180, xaxis: {title: 'Seconds into Campaign', titlefont: {size: 12}}, yaxis: {title: 'Clicks', titlefont: {size: 12}, range: [0, initialClicks + 10]}};
+        Plotly.newPlot('line-chart', trace, lineLayout, {responsive: true});
+    }
+    function updateLiveChart(tick) {
+        const newClicks = Math.max(1, Math.floor(initialClicks / (1 + tick * 0.5) + (Math.random() * 4 - 2)));
+        const update = { y: [[newClicks]], x: [[tick]] };
+        Plotly.extendTraces('line-chart', update, [0], 20);
+    }
+
+    const openExplanationModal = () => {
+        explanationModalBackdrop.style.display = 'flex';
+        document.body.classList.add('modal-open');
+    };
+
+    const closeExplanationModal = () => {
+        explanationModalBackdrop.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    };
+
+    openExplanationLink.addEventListener('click', (e) => {
+        e.preventDefault(); // Prevents the link from trying to navigate
+        openExplanationModal();
+    });
+    explanationModalCloseBtn.addEventListener('click', closeExplanationModal);
+    explanationModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === explanationModalBackdrop) {
+            closeExplanationModal();
+        }
+    });
+
+    const fetchAdCopy = () => {
+        if (!currentPersona) return;
+        generateAdCopyBtn.disabled = true;
+        generateAdCopyBtn.textContent = 'Generating...';
+
+        fetch('/generate_ad_copy', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(currentPersona)
+        })
+        .then(response => response.json())
+        .then(copyData => {
+            adCopyModalBody.innerHTML = ''; // Clear previous
+            if(copyData.ad_variations) {
+                copyData.ad_variations.forEach((ad, index) => {
+                    const adCard = document.createElement('div');
+                    adCard.className = 'ad-copy-card';
+                    adCard.innerHTML = `
+                        <h5>Ad Variation ${index + 1}</h5>
+                        <p><b>Headline:</b> ${ad.headline}</p>
+                        <p><b>Body:</b> ${ad.body}</p>
+                    `;
+                    adCopyModalBody.appendChild(adCard);
+                });
+            }
+            if(copyData.email_subject) {
+                 const emailCard = document.createElement('div');
+                 emailCard.className = 'ad-copy-card';
+                 emailCard.innerHTML = `<h5>Email Subject Line</h5><p>${copyData.email_subject}</p>`;
+                 adCopyModalBody.appendChild(emailCard);
+            }
+            adCopyModalBackdrop.style.display = 'flex';
+        })
+        .catch(error => console.error("Error fetching ad copy:", error))
+        .finally(() => {
+            generateAdCopyBtn.disabled = false;
+            generateAdCopyBtn.textContent = 'Generate Campaign Starters';
+        });
+    };
+
+    generateAdCopyBtn.addEventListener('click', fetchAdCopy);
+    adCopyModalCloseBtn.addEventListener('click', () => adCopyModalBackdrop.style.display = 'none');
+    adCopyModalBackdrop.addEventListener('click', (e) => {
+        if (e.target === adCopyModalBackdrop) adCopyModalBackdrop.style.display = 'none';
+    });
+</script>
+</body>
+</html>

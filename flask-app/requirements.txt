@@ -1,0 +1,16 @@
+# Requirements
+
+# speech-to-text
+Flask
+google-cloud-speech
+moviepy
+imageio-ffmpeg
+
+# recommendation
+pandas
+scikit-learn
+transformers
+torch
+sentence-transformers
+numpy
+scipy

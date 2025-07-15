@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Sports Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .input-field {
+            background-color: #374151; border: 1px solid #4b5563; color: white;
+            font-size: 0.875rem; border-radius: 0.5rem; padding: 0.625rem; width: 100%; display: block;
+        }
+        .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6; }
+        #clips-container::-webkit-scrollbar { width: 8px; }
+        #clips-container::-webkit-scrollbar-track { background: #1f2937; }
+        #clips-container::-webkit-scrollbar-thumb { background-color: #4b5563; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white overflow-y-hidden">
+
+<div class="flex flex-col h-screen">
+    <header class="p-4 border-b border-gray-700 flex-shrink-0">
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-2xl font-bold text-white">Live Sports Analyzer</h1>
+                <p class="text-sm text-gray-400">Real-time event monitoring dashboard.</p>
+            </div>
+
+            <div class="flex flex-col space-y-2 w-1/2">
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="hlsUrlInput" placeholder="Enter HLS stream URL (.m3u8)" class="input-field" value="https://vrd.dirgventures.net/UpFiles/2025/7/14/51/303930/0.m3u8?token=14072025084149">
+                    <button id="startButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-2 px-4 rounded-lg flex-shrink-0">Start</button>
+                    <button id="stopButton" class="bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-2 px-4 rounded-lg hidden flex-shrink-0">Stop</button>
+                </div>
+                <input type="text" id="refererInput" placeholder="Referer Header (Required for some streams)" class="input-field" value="https://hoofootay4.spotlightmoment.com/">
+                <input type="text" id="userAgentInput" placeholder="User-Agent Header (Required for some streams)" class="input-field" value="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36">
+            </div>
+
+            <div id="status-indicator" class="flex items-center space-x-2 pt-2">
+                <div id="status-light" class="w-3 h-3 rounded-full bg-gray-500"></div>
+                <span id="status-text" class="text-gray-300 text-sm">Idle</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex flex-grow overflow-hidden">
+        <div class="w-3/4 p-4 flex flex-col">
+            <div class="bg-black rounded-lg shadow-2xl overflow-hidden flex-grow flex items-center justify-center">
+                <p id="main-player-message" class="text-gray-500">A live preview of captured moments will appear here.</p>
+                <video id="mainVideo" class="max-w-full max-h-full hidden" controls autoplay muted></video>
+            </div>
+        </div>
+        <div class="w-1/4 border-l border-gray-700 flex flex-col">
+            <h2 class="text-xl font-semibold p-4 border-b border-gray-700 flex-shrink-0">Detected Moments</h2>
+            <div id="clips-container" class="flex-grow overflow-y-auto p-4 space-y-4">
+                <p id="no-clips-message" class="text-gray-500 mt-4">Start a stream to begin.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="clipModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50">
+    <div class="bg-gray-800 rounded-lg shadow-xl w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl relative">
+        <button onclick="closeModal()" class="absolute -top-3 -right-3 bg-red-600 text-white rounded-full w-8 h-8 text-xl font-bold">&times;</button>
+        <video id="modalVideo" class="w-full rounded-t-lg" controls autoplay></video>
+        <div class="p-4">
+            <h3 id="modalCategory" class="text-xl font-bold"></h3>
+            <p id="modalSummary" class="text-gray-300 mt-2"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const hlsUrlInput = document.getElementById('hlsUrlInput');
+    const refererInput = document.getElementById('refererInput');
+    const userAgentInput = document.getElementById('userAgentInput');
+    const startButton = document.getElementById('startButton');
+    const stopButton = document.getElementById('stopButton');
+    const mainVideo = document.getElementById('mainVideo');
+    const mainPlayerMessage = document.getElementById('main-player-message');
+    const clipsContainer = document.getElementById('clips-container');
+    const noClipsMessage = document.getElementById('no-clips-message');
+    const statusText = document.getElementById('status-text');
+    const statusLight = document.getElementById('status-light');
+    const modal = document.getElementById('clipModal');
+    const modalVideo = document.getElementById('modalVideo');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalSummary = document.getElementById('modalSummary');
+
+    const CATEGORIZED_CLIPS_BASE_URL = `/static/categorized_clips_live`;
+    let pollingInterval;
+
+    function updateStatus(text, colorClass, pulse = false) {
+        statusText.textContent = text;
+        statusLight.className = `w-3 h-3 rounded-full ${colorClass}`;
+        if (pulse) statusLight.classList.add('animate-pulse');
+        else statusLight.classList.remove('animate-pulse');
+    }
+
+    async function handleStart() {
+        const streamUrl = hlsUrlInput.value.trim();
+        const referer = refererInput.value.trim();
+        const userAgent = userAgentInput.value.trim();
+
+        if (!streamUrl) { return alert("Please enter an HLS stream URL."); }
+
+        startButton.disabled = true;
+        startButton.textContent = 'Processing...';
+        stopButton.classList.remove('hidden');
+        updateStatus('Connecting...', 'bg-yellow-500', true);
+        noClipsMessage.textContent = "Monitoring for key moments...";
+        mainPlayerMessage.textContent = "Waiting for the first captured moment...";
+
+        const payload = { stream_url: streamUrl, referer: referer, user_agent: userAgent };
+
+        try {
+            const response = await fetch('/start-processing', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error((await response.json()).message);
+
+            console.log("Backend analysis started successfully.");
+            updateStatus('Processing', 'bg-green-500', true);
+            pollForUpdates();
+
+        } catch (error) {
+            console.error('Failed to trigger backend processing:', error);
+            updateStatus('Backend Error', 'bg-red-500', false);
+            handleStop();
+        }
+    }
+
+    async function handleStop() {
+        updateStatus('Stopping...', 'bg-yellow-500', true);
+        try { await fetch('/stop-processing', { method: 'POST' }); }
+        catch (error) { console.error("Failed to send stop signal:", error); }
+
+        mainVideo.classList.add('hidden');
+        mainPlayerMessage.classList.remove('hidden');
+        mainVideo.src = '';
+        clipsContainer.innerHTML = '';
+        noClipsMessage.textContent = "Start a stream to begin.";
+        noClipsMessage.classList.remove('hidden');
+
+        startButton.disabled = false;
+        startButton.textContent = 'Start';
+        stopButton.classList.add('hidden');
+        updateStatus('Idle', 'bg-gray-500', false);
+    }
+
+    function addClipToUI(clip) {
+        console.log("clip arrived")
+        noClipsMessage.classList.add('hidden');
+        const badgeColorClass = 'bg-green-600';
+        const thumbnailUrl = `${CATEGORIZED_CLIPS_BASE_URL}/${clip.thumb_path}`;
+        const clipCard = document.createElement('div');
+        clipCard.className = 'bg-gray-800 rounded-lg overflow-hidden shadow-md cursor-pointer flex flex-col hover:bg-gray-700 transition';
+        clipCard.onclick = () => openModal(clip);
+        clipCard.innerHTML = `<div class="relative"><img src="${thumbnailUrl}" alt="${clip.category}" class="w-full h-auto object-cover bg-gray-700"><div class="absolute top-2 left-2"><span class="text-xs font-bold ${badgeColorClass} text-white px-2 py-1 rounded-full shadow-lg">${clip.category}</span></div></div><div class="p-3"><p class="text-sm text-gray-200 leading-snug">${clip.summary}</p><p class="text-xs text-gray-500 mt-2 text-right">${clip.timestamp}</p></div>`;
+        clipsContainer.prepend(clipCard);
+
+        mainPlayerMessage.classList.add('hidden');
+        mainVideo.classList.remove('hidden');
+        mainVideo.src = `${CATEGORIZED_CLIPS_BASE_URL}/${clip.video_path}`;
+        mainVideo.play().catch(e => console.warn("Autoplay was prevented:", e));
+    }
+
+    function openModal(clip) {
+        modalCategory.textContent = clip.category;
+        modalSummary.textContent = clip.summary;
+        modalVideo.src = `${CATEGORIZED_CLIPS_BASE_URL}/${clip.video_path}`;
+        modal.classList.remove('hidden');
+        modalVideo.play();
+    }
+
+    function closeModal() {
+        modal.classList.add('hidden');
+        modalVideo.pause();
+        modalVideo.src = '';
+    }
+
+
+    // [NEW] This function replaces the SSE setup
+    function pollForUpdates() {
+        // Stop any previous polling
+        if (pollingInterval) clearInterval(pollingInterval);
+
+        // Ask for new clips every 2 seconds
+        pollingInterval = setInterval(async () => {
+            // If the process has been stopped, clear this interval
+            if (stopButton.classList.contains('hidden')) {
+                clearInterval(pollingInterval);
+                return;
+            }
+            try {
+                const response = await fetch('/get-updates');
+                const clips = await response.json();
+                if (clips.length > 0) {
+                    console.log(`Received ${clips.length} new clip(s) from backend.`);
+                    clips.forEach(clip => addClipToUI(clip));
+                }
+            } catch (e) {
+                console.error("Polling for updates failed:", e);
+                // Optionally stop polling on error
+                // clearInterval(pollingInterval);
+                // updateStatus('Connection Lost', 'bg-red-500', false);
+            }
+        }, 2000); // Poll every 2 seconds
+    }
+
+    window.onload = () => {
+        startButton.addEventListener('click', handleStart);
+        stopButton.addEventListener('click', handleStop);
+        pollForUpdates();
+    };
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Voice Transcription App</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          text-align: center;
+          margin-top: 50px;
+        }
+        button {
+          font-size: 20px;
+          padding: 10px 20px;
+          cursor: pointer;
+        }
+        #transcript {
+          margin-top: 20px;
+          font-size: 22px;
+          font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<h1>Voice Transcription App</h1>
+<button id="recordBtn">Start Recording</button>
+<p id="transcript">Transcript will appear here...</p>
+
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+    const recordBtn = document.getElementById("recordBtn");
+
+    recordBtn.addEventListener("click", async function() {
+      if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        startRecording();
+      } else {
+        stopRecording();
+      }
+    });
+
+    async function startRecording() {
+      recordBtn.innerText = "Stop Recording";
+      audioChunks = [];
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = event => {
+        if (event.data.size > 0) {
+          audioChunks.push(event.data);
+        }
+      };
+      mediaRecorder.onstop = () => {
+        recordBtn.innerText = "Start Recording";
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+        const reader = new FileReader();
+        reader.onloadend = function() {
+          const base64Audio = reader.result;
+          sendAudioToBackend(base64Audio);
+        };
+        reader.readAsDataURL(audioBlob);
+      };
+      mediaRecorder.start();
+    }
+
+    function stopRecording() {
+      mediaRecorder.stop();
+    }
+
+    async function sendAudioToBackend(audioData) {
+      try {
+        const response = await fetch("/transcribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ audio: audioData })
+        });
+        const result = await response.json();
+        if (result.transcript) {
+          document.getElementById("transcript").innerText = "Transcript: " + result.transcript;
+        } else {
+          document.getElementById("transcript").innerText = "Error: " + result.error;
+        }
+      } catch (error) {
+        document.getElementById("transcript").innerText = "Error: " + error.message;
+      }
+    }
+</script>
+</body>
+</html>

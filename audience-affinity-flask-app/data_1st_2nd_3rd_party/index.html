@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Audience Intelligence & Activation Platform</title>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <style>
+        :root { --primary-color: #0d6efd; --success-color: #198754; --danger-color: #dc3545; --bg-light: #f8f9fa; --border-color: #dee2e6; --text-dark: #212529; --text-muted: #6c757d; --bg-white: #ffffff; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: var(--text-dark); background-color: var(--bg-light); margin: 0; padding: 0; font-size: 14px; overflow: hidden; }
+        .container { max-width: 95vw; height: 97vh; margin: 1.5vh auto; display: grid; grid-template-columns: 6fr 4fr; gap: 20px; }
+        .chart-container, .sidebar { background-color: var(--bg-white); border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06); padding: 15px 20px; display: flex; flex-direction: column; }
+        .sidebar { overflow-y: auto; }
+        #chart { flex-grow: 1; min-height: 0; }
+        h1 { text-align: center; margin: 0 0 5px 0; font-size: 1.5rem; color: var(--text-dark); font-weight: 600; }
+        h3 { text-align: center; margin: 0 0 10px 0; font-size: 1.2rem; }
+        .control-panel select { width: 100%; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.9rem; }
+        .tabs { display: flex; border-bottom: 1px solid var(--border-color); margin: 10px 0; }
+        .tab-button { padding: 8px 12px; cursor: pointer; border: none; background: none; font-size: 0.9rem; color: var(--text-muted); border-bottom: 3px solid transparent; flex-grow: 1; }
+        .tab-button.active { color: var(--primary-color); border-bottom-color: var(--primary-color); font-weight: 600; }
+        .tab-content { display: none; padding-top: 5px;}
+        .tab-content.active { display: block; }
+        .value-cards-container { display: flex; gap: 15px; align-items: stretch; }
+        .metric-card { flex: 1; text-align: center; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; flex-direction: column; justify-content: space-between;}
+        .metric-card h4 { margin: 0 0 5px 0; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; }
+        .metric-card p { margin: 0; font-size: 1.9rem; font-weight: 700; }
+        .metric-card .clv-value { color: var(--success-color); }
+        .metric-card .risk-value { color: var(--danger-color); }
+        .metric-definition { font-size: 0.75rem; font-style: italic; color: var(--text-muted); margin-top: 8px; line-height: 1.3; flex-grow: 1; }
+        #affinity-chart { height: 180px; }
+        .explanation-text { font-size: 0.8rem; color: var(--text-muted); padding: 0 10px 10px 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px; text-align: center; }
+        .tab-explanation { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 15px; font-style: italic; }
+        .strategy-section { margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-color); }
+        .strategy-section h4 { margin: 0 0 10px 0; color: var(--primary-color); font-size: 1rem; }
+        .strategy-section p { font-size: 0.85rem; line-height: 1.5; margin: 0 0 10px 0; }
+        .strategy-section b { color: var(--text-dark); }
+        .use-case-summary { padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 10px; }
+        .use-case-summary h4 { text-align: center; font-size: 1rem; color: var(--text-dark); margin: 0 0 5px 0;}
+        .use-case-summary p { font-size: 0.85rem; line-height: 1.5; color: var(--text-muted); margin: 0; }
+        #plot-filters { padding: 8px 0; text-align: center; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; border-top: 1px solid var(--border-color); margin-top: 10px; }
+        #plot-filters label { font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; }
+        #plot-filters input { margin-right: 5px; }
+
+        .genai-section { padding: 15px; background-color: #f8f9fa; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 15px; }
+        .genai-section h4 { margin: 0 0 10px 0; color: var(--primary-color); }
+        .genai-section ul, .genai-section div { padding-left: 20px; margin: 0; }
+        .genai-section li { margin-bottom: 8px; }
+        #generate-angles-btn { margin-top: 10px; width: 100%; padding: 6px 12px; font-size: 0.85rem; background-color: var(--primary-color); opacity: 0.8; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        #generate-angles-btn:disabled { background-color: #9ca3af; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="chart-container">
+        <h1>Audience Intelligence Platform</h1>
+        <div class="explanation-text">
+            This chart maps customers into behavioral clusters. <b>Dot Color</b> corresponds to the cluster segment.<br>
+            The axes reflect abstract ML-derived values, while the annotations provide business context.
+        </div>
+        <div id="chart"></div>
+        <div id="plot-filters">
+            <label><strong>Filter Plot:</strong></label>
+            <label><input type="checkbox" class="plot-filter-cb" value="all" checked> All Segments</label>
+            {% for cluster in clusters %}
+            <label><input type="checkbox" class="plot-filter-cb" value="{{ cluster }}" checked> Segment {{ cluster }}</label>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="sidebar">
+        <div class="use-case-summary">
+            <h4>Use Case Summary</h4>
+            <p>This dashboard transforms raw user data into actionable strategy. By segmenting customers using machine learning and enriching the analysis with Generative AI, we can instantly identify high-value groups and create targeted activation plans.</p>
+        </div>
+        <h3>Segment Analysis</h3>
+        <div class="control-panel">
+            <select id="cluster_select" class="form-control">
+                <option value="all" selected>Select a Segment to Analyze...</option>
+                {% for cluster in clusters %}
+                <option value="{{ cluster }}">Cluster {{ cluster }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="tabs">
+            <button class="tab-button active" onclick="openTab(event, 'persona')">Persona</button>
+            <button class="tab-button" onclick="openTab(event, 'value')">Business Value</button>
+            <button class="tab-button" onclick="openTab(event, 'activation')">Activation</button>
+        </div>
+        <div id="persona" class="tab-content active">
+            <div class="tab-explanation"><b>Who is this segment?</b> Gemini has generated a persona based on this segment's data.</div>
+            <h4 id="persona-name" style="color: var(--primary-color); margin: 0 0 5px 0;">Select a Segment</h4>
+            <p id="persona-summary">Details will appear here...</p>
+        </div>
+        <div id="value" class="tab-content">
+            <div class="tab-explanation"><b>What is this segment worth?</b> Key financial metrics and AI-powered strategic advice.</div>
+            <div class="value-cards-container">
+                <div class="metric-card">
+                    <h4>Avg. Lifetime Value (CLV)</h4>
+                    <p id="clv-text" class="clv-value">-</p>
+                </div>
+                <div class="metric-card">
+                    <h4>Predicted Churn Risk</h4>
+                    <p id="churn-text" class="risk-value">-</p>
+                </div>
+            </div>
+            <div id="strategy-recommendations" class="genai-section" style="display: none;">
+                <h4>Strategic Recommendations</h4>
+                <ul id="strategy-list"></ul>
+            </div>
+        </div>
+        <div id="activation" class="tab-content">
+            <div class="tab-explanation"><b>How do we reach this segment?</b> See the best channels and get AI-generated campaign ideas.</div>
+            <p id="activation-text" style="font-size: 0.9rem; color: var(--text-muted); text-align: center; margin-bottom: 5px;">Top channels (Affinity vs. Avg. User)</p>
+            <div id="affinity-chart"></div>
+            <button id="generate-angles-btn" disabled>Suggest Campaign Angles</button>
+            <div id="campaign-angles-container" class="genai-section" style="display: none;">
+                <h4>Creative Campaign Angles</h4>
+                <div id="campaign-angles-list"></div>
+            </div>
+        </div>
+        <div class="strategy-section" style="display:none;"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    let currentAffinityPlotData = null;
+    let currentPersonaSummary = null;
+
+    function openTab(evt, tabName) {
+        let i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+        tablinks = document.getElementsByClassName("tab-button");
+        for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", "");}
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+        if (tabName === 'activation' && currentAffinityPlotData) {
+            Plotly.newPlot('affinity-chart', currentAffinityPlotData.data, currentAffinityPlotData.layout, {responsive: true, displayModeBar: false});
+        }
+    }
+
+    function resetSidebar() {
+        document.getElementById('persona-name').textContent = 'Select a Segment';
+        document.getElementById('persona-summary').textContent = 'Details will appear here...';
+        document.getElementById('clv-text').textContent = '-';
+        document.getElementById('churn-text').textContent = '-';
+        document.getElementById('strategy-recommendations').style.display = 'none';
+        document.getElementById('campaign-angles-container').style.display = 'none';
+        document.getElementById('generate-angles-btn').disabled = true;
+        Plotly.purge('affinity-chart');
+        currentPersonaSummary = null;
+    }
+
+    function updateSidebarWithInitialData(data) {
+        // This function now only populates the non-AI parts instantly
+        document.getElementById('clv-text').textContent = data.avg_clv;
+        document.getElementById('churn-text').textContent = data.avg_churn_risk;
+
+        const affinityData = [{ y: data.channel_affinity.channels, x: data.channel_affinity.scores, type: 'bar', orientation: 'h', marker: { color: 'rgba(13, 110, 253, 0.7)' } }];
+        const affinityLayout = { margin: { l: 110, t: 5, r: 20, b: 30 }, xaxis: { title: { text: 'Affinity Score (100 = Avg)', font: {size: 10} } }, yaxis: { automargin: false, tickfont: { size: 11 } } };
+        currentAffinityPlotData = { data: affinityData, layout: affinityLayout };
+
+        // Set loading states for GenAI parts
+        document.getElementById('persona-name').textContent = "Analyzing Segment...";
+        document.getElementById('persona-summary').textContent = "Generating AI-powered insights, please wait...";
+        document.getElementById('strategy-recommendations').style.display = 'none';
+        document.getElementById('campaign-angles-container').style.display = 'none';
+        document.getElementById('generate-angles-btn').disabled = true;
+
+        if (document.getElementById('activation').classList.contains('active')) {
+             Plotly.newPlot('affinity-chart', currentAffinityPlotData.data, currentAffinityPlotData.layout, {responsive: true, displayModeBar: false});
+        }
+    }
+
+    function updateSidebarWithGenaiData(data) {
+        // This function populates the AI-generated parts
+        currentPersonaSummary = data.persona.persona_summary;
+        document.getElementById('persona-name').textContent = data.persona.segment_name;
+        document.getElementById('persona-summary').textContent = data.persona.persona_summary;
+
+        const strategyList = document.getElementById('strategy-list');
+        const strategyContainer = document.getElementById('strategy-recommendations');
+        strategyList.innerHTML = '';
+        if (data.strategy && data.strategy.length > 0) {
+            data.strategy.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                strategyList.appendChild(li);
+            });
+            strategyContainer.style.display = 'block';
+        }
+        document.getElementById('generate-angles-btn').disabled = false;
+    }
+
+    const fetchCampaignAngles = () => {
+        if (!currentPersonaSummary) return;
+        const btn = document.getElementById('generate-angles-btn');
+        btn.disabled = true;
+        btn.textContent = 'Brainstorming...';
+        fetch('/generate_campaign_angles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ persona_summary: currentPersonaSummary })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const anglesContainer = document.getElementById('campaign-angles-container');
+            const anglesList = document.getElementById('campaign-angles-list');
+            anglesList.innerHTML = '';
+            if (data.angles && data.angles.length > 0) {
+                data.angles.forEach(angle => {
+                    const angleDiv = document.createElement('div');
+                    angleDiv.innerHTML = `<p><b>${angle.title}:</b> ${angle.description}</p>`;
+                    anglesList.appendChild(angleDiv);
+                });
+                anglesContainer.style.display = 'block';
+            }
+        })
+        .catch(error => console.error("Error fetching campaign angles:", error))
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = 'Suggest Campaign Angles';
+        });
+    };
+
+    window.onload = function() {
+        const initial_graph_data = {{ graphJSON | safe }};
+        const chartDiv = document.getElementById('chart');
+        Plotly.newPlot(chartDiv, initial_graph_data.data, initial_graph_data.layout, {responsive: true});
+
+        const cluster_selector = document.getElementById('cluster_select');
+        cluster_selector.addEventListener('change', function() {
+            const selected_cluster = this.value;
+            if (selected_cluster === "all") {
+                resetSidebar();
+                return;
+            }
+
+            // Step 1: Fetch initial data and show loading states
+            fetch(`/get_initial_cluster_data/${selected_cluster}`)
+                .then(response => response.json())
+                .then(data => {
+                    updateSidebarWithInitialData(data);
+                    // Step 2: In the background, fetch the GenAI insights
+                    return fetch(`/get_genai_insights/${selected_cluster}`);
+                })
+                .then(response => response.json())
+                .then(data => {
+                    updateSidebarWithGenaiData(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching cluster data:', error);
+                    document.getElementById('persona-summary').textContent = 'An error occurred while fetching data.';
+                });
+        });
+
+        // Other event listeners
+        document.getElementById('generate-angles-btn').addEventListener('click', fetchCampaignAngles);
+        const plot_filters = document.querySelectorAll('.plot-filter-cb');
+        plot_filters.forEach(cb => {
+            cb.addEventListener('change', function() {
+                if (this.value === 'all') {
+                    plot_filters.forEach(other_cb => { if(other_cb !== this) other_cb.checked = this.checked; });
+                } else {
+                    if (!this.checked) { document.querySelector('.plot-filter-cb[value="all"]').checked = false; }
+                }
+                updatePlotVisibility();
+            });
+        });
+    };
+
+    function updatePlotVisibility() {
+        const visibility = [];
+        document.querySelectorAll('.plot-filter-cb[value]:not([value="all"])').forEach(cb => {
+            visibility.push(cb.checked);
+        });
+        Plotly.restyle('chart', { visible: visibility });
+    }
+</script>
+</body>
+</html>

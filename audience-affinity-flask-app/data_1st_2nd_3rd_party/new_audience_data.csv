@@ -1,0 +1,51 @@
+user_id,age_group,income_bracket,time_on_social_media_min,time_on_streaming_video_min,time_on_podcasts_min,monthly_conversions,customer_since_date,avg_monthly_spend,last_seen_days_ago,support_tickets_raised,churned_in_last_90_days,partner_purchase_categories,traveler_type,household_size,education_level,homeowner_status,offline_purchase_intent
+5000,35-44,High,201,288,160,8,"2022-10-18 14:22:11",155.78,12,0,False,"Electronics, Home Goods",Business,2,Masters Degree,Own,None
+5001,18-24,Low,255,150,40,3,"2024-04-01 09:15:33",28.45,88,3,True,"Apparel, Fitness",Solo,1,High School,Rent,In-Market for Car
+5002,45-54,Medium,50,90,250,5,"2023-01-20 11:45:01",72.3,45,1,False,"Books, Groceries",Family,4,Bachelors Degree,Own,None
+5003,55+,Low,60,40,110,2,"2024-06-10 18:30:15",42.1,105,4,True,"Home Goods",Unknown,1,High School,Rent,Planning Vacation
+5004,25-34,High,230,270,110,10,"2021-11-05 08:25:40",175.9,7,0,False,"Electronics, Fitness",Leisure,2,PhD,Own,None
+5005,35-44,Medium,180,210,190,6,"2022-07-11 15:55:20",95.6,28,1,False,"Apparel, Home Goods",Business,3,Bachelors Degree,Own,Seeking Insurance
+5006,18-24,Medium,240,170,60,4,"2023-08-22 21:10:55",62.8,78,2,False,"Fitness, Books",Solo,1,High School,Rent,None
+5007,45-54,Low,30,50,270,3,"2024-01-12 10:05:30",39.7,80,1,False,"Groceries",Unknown,3,Masters Degree,Own,None
+5008,55+,High,130,140,120,9,"2022-04-14 06:40:10",188.4,11,0,False,"Electronics, Books",Leisure,2,PhD,Own,In-Market for Home
+5009,25-34,Low,80,110,230,1,"2024-03-05 07:30:00",40.2,112,3,True,"Apparel",Family,2,Bachelors Degree,Rent,None
+5010,35-44,High,170,230,170,12,"2021-09-01 13:20:18",168.2,5,0,False,"Electronics, Fitness",Business,4,Masters Degree,Own,None
+5011,18-24,Low,270,200,20,2,"2024-05-20 19:40:48",23.5,93,4,True,"Apparel",Solo,1,High School,Rent,In-Market for Car
+5012,45-54,Medium,40,80,260,6,"2023-04-18 17:50:58",81.9,41,0,False,"Home Goods, Books",Unknown,3,Bachelors Degree,Own,None
+5013,55+,High,110,120,100,7,"2022-01-28 14:00:35",180.1,18,1,False,"Electronics",Leisure,2,PhD,Own,Planning Vacation
+5014,25-34,Medium,200,220,80,5,"2023-10-10 11:10:20",69.5,33,1,False,"Fitness, Apparel",Solo,2,Bachelors Degree,Rent,None
+5015,35-44,Low,70,100,240,4,"2024-02-19 09:50:45",52.4,62,0,False,"Groceries, Books",Family,4,Masters Degree,Own,None
+5016,18-24,High,260,250,70,8,"2023-03-15 12:20:15",128.8,25,0,False,"Electronics, Fitness",Solo,1,High School,Own,None
+5017,45-54,Low,20,40,280,1,"2024-04-25 16:30:25",36.2,102,5,True,"Home Goods",Unknown,3,Bachelors Degree,Rent,In-Market for Home
+5018,55+,Medium,90,100,150,4,"2023-02-08 13:15:18",88.7,50,0,False,"Books",Leisure,2,Masters Degree,Own,None
+5019,25-34,High,250,280,120,11,"2022-06-04 10:00:00",152.3,10,0,False,"Electronics, Apparel",Business,2,PhD,Own,None
+5020,35-44,Medium,190,220,180,6,"2022-12-28 15:05:05",98.2,20,1,False,"Fitness, Home Goods",Family,3,Bachelors Degree,Own,None
+5021,18-24,Low,280,220,30,2,"2024-06-15 22:50:35",21.9,96,3,True,"Apparel",Backpacker,1,High School,Rent,None
+5022,45-54,High,120,140,280,9,"2022-09-22 18:25:25",172.6,13,1,False,"Electronics, Books",Business,4,Masters Degree,Own,Seeking Insurance
+5023,55+,Low,40,60,120,3,"2024-05-12 17:40:50",44.8,118,2,True,"Home Goods",Unknown,1,High School,Rent,None
+5024,25-34,Low,90,120,240,4,"2023-05-14 10:55:40",50.9,58,0,False,"Groceries",Family,2,Bachelors Degree,Rent,None
+5025,35-44,High,160,200,160,8,"2022-02-02 08:35:10",160.4,16,0,False,"Electronics",Leisure,3,PhD,Own,None
+5026,18-24,Medium,230,160,50,3,"2024-03-25 20:45:15",60.1,72,2,False,"Fitness, Apparel",Solo,1,High School,Rent,None
+5027,45-54,Low,50,70,290,2,"2024-01-01 11:55:00",38.1,86,3,True,"Home Goods, Groceries",Unknown,3,Bachelors Degree,Own,In-Market for Home
+5028,55+,High,140,160,130,10,"2021-12-01 07:10:50",190.2,6,0,False,"Electronics, Books",Business,2,Masters Degree,Own,None
+5029,25-34,High,210,240,100,7,"2023-07-07 12:30:25,142.5,29,1,False,"Fitness, Electronics",Leisure,2,PhD,Own,None
+5030,35-44,Medium,150,180,170,5,"2022-10-15 14:40:30",90.8,31,0,False,"Apparel, Books",Family,4,Bachelors Degree,Own,None
+5031,18-24,Low,260,190,20,1,"2024-05-30 23:00:00",20.5,91,4,True,"Apparel, Fitness",Backpacker,1,High School,Rent,None
+5032,45-54,High,100,120,260,8,"2022-06-20 16:10:45",168.9,19,1,False,"Electronics, Home Goods",Business,3,Masters Degree,Own,Planning Vacation
+5033,55+,Medium,70,80,130,4,"2023-06-16 19:20:55",84.2,55,0,False,"Books, Groceries",Leisure,2,Bachelors Degree,Own,None
+5034,25-34,Low,60,90,210,3,"2024-02-28 08:40:20",46.5,108,2,True,"Apparel",Solo,2,High School,Rent,None
+5035,35-44,High,180,220,150,9,"2021-08-11 11:50:35",158.3,13,0,False,"Electronics, Fitness",Business,3,PhD,Own,In-Market for Car
+5036,18-24,High,270,260,80,6,"2023-01-25 14:30:05",125.2,23,1,False,"Fitness, Electronics",Solo,1,Bachelors Degree,Own,None
+5037,45-54,Low,40,60,280,2,"2023-12-15 09:15:50",34.9,74,2,False,"Groceries, Home Goods",Unknown,4,Masters Degree,Rent,None
+5038,55+,High,120,130,110,7,"2022-03-25 07:50:40",185.6,9,0,False,"Books, Electronics",Leisure,2,PhD,Own,None
+5039,25-34,Medium,190,210,70,5,"2023-09-20 10:25:10",72.1,37,1,False,"Apparel, Fitness",Business,2,Bachelors Degree,Rent,None
+5040,35-44,Low,50,80,230,4,"2024-04-01 12:00:15",48.3,60,0,False,"Books",Family,3,High School,Own,None
+5041,18-24,Low,250,180,30,1,"2024-06-20 22:10:40",22.2,99,4,True,"Apparel",Backpacker,1,High School,Rent,Seeking Insurance
+5042,45-54,High,110,130,270,9,"2022-07-25 17:30:30",178.2,14,1,False,"Home Goods, Electronics",Business,4,Masters Degree,Own,None
+5043,55+,Medium,80,90,140,3,"2023-05-20 18:40:20",86.5,49,0,False,"Books, Groceries",Leisure,2,Bachelors Degree,Own,None
+5044,25-34,High,240,270,110,11,"2022-05-05 11:35:50",150.8,26,0,False,"Fitness, Electronics",Solo,2,PhD,Own,None
+5045,35-44,Medium,170,200,180,6,"2023-01-05 14:10:40",93.7,24,1,False,"Apparel, Home Goods",Family,3,Bachelors Degree,Own,None
+5046,18-24,High,290,270,90,7,"2023-08-15 13:50:30",128.3,21,1,False,"Electronics, Fitness",Solo,1,Bachelors Degree,Own,In-Market for Car
+5047,45-54,Low,30,50,260,2,"2024-02-11 10:50:20",37.4,82,3,True,"Groceries",Unknown,3,Masters Degree,Rent,None
+5048,55+,Low,60,70,120,4,"2024-03-30 16:20:10",46.9,105,2,True,"Home Goods",Family,1,High School,Rent,None
+5049,25-34,Low,70,100,220,1,"2024-04-20 09:30:00",44.1,115,3,True,"Books",Solo,2,Bachelors Degree,Rent,None

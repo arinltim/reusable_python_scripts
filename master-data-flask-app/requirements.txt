@@ -1,0 +1,6 @@
+# Install with: pip install -r requirements.txt
+
+flask
+spacy
+google-generativeai
+# python -m spacy download en_core_web_sm

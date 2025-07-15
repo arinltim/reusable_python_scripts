@@ -1,0 +1,11 @@
+# Install with: pip install -r requirements.txt
+# nltk.download('punkt_tab')
+
+flask
+streamlink
+openai-whisper @ git+https://github.com/openai/whisper.git@dd985ac4b90cafeef8712f2998d62c59c3e62d22
+whisper
+ffmpeg-python
+google-generativeai
+edge_tts
+nltk

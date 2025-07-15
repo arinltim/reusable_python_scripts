@@ -1,0 +1,9 @@
+# Requirements
+
+flask
+langchain
+faiss-cpu
+transformers
+sentence-transformers
+torch
+langchain-community

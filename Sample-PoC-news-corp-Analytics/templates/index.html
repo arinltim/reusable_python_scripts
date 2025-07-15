@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Analyst Agent POC (Advanced)</title>
+    <style>
+        /* All CSS from previous version remains the same, with one addition */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body { font-family: 'Inter', sans-serif; margin: 0; background-color: #f4f7f6; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px; gap: 20px; }
+        #chat-container { flex: 3; min-width: 400px; max-width: 900px; height: 90vh; background: white; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        #sidebar { flex: 1; min-width: 300px; height: 90vh; background: #ffffff; border-radius: 16px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); overflow-y: auto; padding: 20px; }
+        #header { background: linear-gradient(90deg, #4e54c8, #8f94fb); color: white; padding: 20px; text-align: center; flex-shrink: 0; }
+        h1 { margin: 0; font-size: 1.5em; font-weight: 700; }
+        #response-area { padding: 20px; overflow-y: auto; flex-grow: 1; }
+        #input-area { border-top: 1px solid #e0e0e0; padding: 20px; display: flex; gap: 10px; background-color: #fcfcfc; flex-shrink: 0; }
+        #user-input { flex-grow: 1; padding: 12px 15px; border-radius: 8px; border: 1px solid #ccc; font-size: 1em; }
+        #ask-button { padding: 12px 20px; border-radius: 8px; border: none; background-color: #4e54c8; color: white; font-size: 1em; font-weight: 500; cursor: pointer; }
+        #ask-button:disabled { background-color: #ccc; }
+        .convo-block { margin-bottom: 25px; }
+        .user-question { background-color: #e9efff; padding: 15px; border-radius: 12px 12px 0 12px; margin-left: auto; max-width: 80%; border: 1px solid #dbe6ff; word-wrap: break-word; }
+        .user-question p { margin: 0; color: #333; }
+        .response-block { margin-top: 10px; padding: 20px; border: 1px solid #eee; border-radius: 12px 12px 12px 0; background-color: #fafafa; animation: fadeIn 0.5s ease-in-out; max-width: 95%; word-wrap: break-word; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .response-block h2 { margin-top: 0; font-size: 1.2em; color: #333; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px;}
+        .monetization-block { margin-top: 20px; padding: 15px; background-color: #e8f5e9; border-left: 4px solid #4caf50; border-radius: 8px; }
+        .monetization-block h3 { margin-top: 0; color: #2e7d32; font-size: 1.1em; }
+        #chart-image { max-width: 100%; height: auto; border-radius: 8px; margin-top: 15px; }
+        .query-examples h2 { font-size: 1.3em; color: #333; }
+        .query-examples h3 { margin-top: 20px; margin-bottom: 10px; color: #4e54c8; border-bottom: 2px solid #e9efff; padding-bottom: 5px;}
+        .query-examples ul { list-style-type: none; padding-left: 0; margin: 0; }
+        .query-examples li { background-color: #f0f4ff; margin-bottom: 8px; padding: 10px 12px; border-radius: 6px; font-size: 0.9em; cursor: pointer; transition: background-color 0.2s; border-left: 3px solid #8f94fb; }
+        .query-examples li:hover { background-color: #e0e7ff; }
+
+        /* New style for the HTML table */
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+        .data-table th, .data-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .data-table th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+<div id="chat-container">
+    <div id="header"><h1>AI Analyst Agent (Advanced)</h1></div>
+    <div id="response-area"><p>Welcome! Ask a question or click an example from the sidebar.</p></div>
+    <div id="input-area"><input type="text" id="user-input" placeholder="Ask a question..."><button id="ask-button">Ask Agent</button></div>
+</div>
+
+<div id="sidebar">
+    <div class="query-examples">
+        <h2>Query Examples</h2>
+
+        <h3>Advanced Visualizations</h3>
+        <ul>
+            <li onclick="setQuery(this)">When are our readers most active? Show me engagement by day and hour.</li>
+            <li onclick="setQuery(this)">Show me the breakdown of content from publication, to topic, to sub-topic.</li>
+            <li onclick="setQuery(this)">Where is our Technology coverage most popular?</li>
+            <li onclick="setQuery(this)">What are the most common keywords in articles about Health?</li>
+            <li onclick="setQuery(this)">Give me a detailed list of all finance articles and their authors.</li>
+        </ul>
+
+        <h3>Ranking & Comparison</h3>
+        <ul>
+            <li onclick="setQuery(this)">What are the top 5 performing articles?</li>
+            <li onclick="setQuery(this)">Compare engagement across publications.</li>
+        </ul>
+
+        <h3>Distribution & Breakdown</h3>
+        <ul>
+            <li onclick="setQuery(this)">What is the breakdown of content by topic?</li>
+        </ul>
+
+        <h3>Trends & Timelines</h3>
+        <ul>
+            <li onclick="setQuery(this)">Show me the trend of user shares over the last 6 months.</li>
+        </ul>
+
+        <h3>Correlations & Relationships</h3>
+        <ul>
+            <li onclick="setQuery(this)">Is there a relationship between article length and engagement?</li>
+        </ul>
+
+        <h3>Business & Audit Queries</h3>
+
+        <h4>1. Daily Average Volume</h4>
+        <ul>
+            <li onclick="setQuery(this)">What is the average daily publishing rate for each publication?</li>
+            <li onclick="setQuery(this)">Are there observable trends or seasonal variations in article volume?</li>
+            <li onclick="setQuery(this)">Is content production consistent and stable over time?</li>
+        </ul>
+
+        <h4>2. Yearly & Licensable Volume</h4>
+        <ul>
+            <li onclick="setQuery(this)">How much content was produced by each publication in the past year?</li>
+            <li onclick="setQuery(this)">What percentage of total content is licensable and suitable for syndication?</li>
+            <li onclick="setQuery(this)">Which publications are the top contributors for content licensing?</li>
+        </ul>
+
+        <h4>3. Daily Volume & Licensable Trend</h4>
+        <ul>
+            <li onclick="setQuery(this)">What is the publishing activity trend on a daily basis?</li>
+            <li onclick="setQuery(this)">Are there any irregularities, spikes, or drops in article creation?</li>
+            <li onclick="setQuery(this)">How does the trend of licensable content evolve day-to-day?</li>
+        </ul>
+
+        <h4>4. WSJ Cleanup Details</h4>
+        <ul>
+            <li onclick="setQuery(this)">For WSJ November 2024, what data integrity issues exist?</li>
+            <li onclick="setQuery(this)">What were the dominant content types for WSJ during November 2024?</li>
+        </ul>
+
+        <h4>5. Opinion Content Analysis</h4>
+        <ul>
+            <li onclick="setQuery(this)">What is the proportion of opinion content to total published volume?</li>
+            <li onclick="setQuery(this)">Do editorial pieces play a major role in licensing strategies?</li>
+        </ul>
+
+        <h4>6. WSJ Categories</h4>
+        <ul>
+            <li onclick="setQuery(this)">What topics are most represented in the WSJ?</li>
+            <li onclick="setQuery(this)">Which WSJ content categories offer the highest potential value?</li>
+        </ul>
+
+        <h4>7. WSJ & NYPost Summary</h4>
+        <ul>
+            <li onclick="setQuery(this)">How do WSJ and NYPost compare in content generation volume?</li>
+            <li onclick="setQuery(this)">What insights can be drawn about their publishing patterns?</li>
+        </ul>
+
+        <h4>8. NYPost Categories</h4>
+        <ul>
+            <li onclick="setQuery(this)">What topics dominate NYPost’s editorial output?</li>
+            <li onclick="setQuery(this)">Which NYPost content categories are most viable for syndication?</li>
+        </ul>
+
+    </div>
+</div>
+
+<script>
+    // All JS from previous version remains the same, with one update in the try/catch block
+    const askButton = document.getElementById('ask-button');
+    const userInput = document.getElementById('user-input');
+    const responseArea = document.getElementById('response-area');
+    let isFirstQuery = true;
+
+    askButton.addEventListener('click', askAgent);
+    userInput.addEventListener('keypress', function(e) { if (e.key === 'Enter') askAgent(); });
+    function setQuery(element) { userInput.value = element.innerText; userInput.focus(); }
+
+    async function askAgent() {
+        const question = userInput.value.trim();
+        if (!question) return;
+        askButton.disabled = true;
+        askButton.innerText = 'Analyzing...';
+        if (isFirstQuery) { responseArea.innerHTML = ''; isFirstQuery = false; }
+
+        const convoBlock = document.createElement('div');
+        convoBlock.className = 'convo-block';
+        convoBlock.innerHTML = `<div class="user-question"><p>${question}</p></div><div class="response-block loader">🤖 The agent is analyzing...</div>`;
+        responseArea.appendChild(convoBlock);
+        responseArea.scrollTop = responseArea.scrollHeight;
+        userInput.value = '';
+
+        const agentResponseBlock = convoBlock.querySelector('.response-block');
+
+        try {
+            const response = await fetch('/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP error!`);
+            }
+            const data = await response.json();
+
+            let responseHTML = `<h2>Agent's Analysis</h2><p>${data.text_response}</p>`;
+
+            if (data.monetization_opportunity) {
+                responseHTML += `<div class="monetization-block"><h3>💡 Monetization Opportunity</h3><p>${data.monetization_opportunity}</p></div>`;
+            }
+
+            // *** NEW: Logic to handle either an image OR an HTML table ***
+            if (data.html_table) {
+                responseHTML += data.html_table;
+            } else if (data.chart_image) {
+                responseHTML += `<img id="chart-image" src="data:image/png;base64,${data.chart_image}" alt="Generated Chart">`;
+            }
+            agentResponseBlock.innerHTML = responseHTML;
+
+        } catch (error) {
+            agentResponseBlock.innerHTML = `<p class="error-message">An error occurred: ${error.message}</p>`;
+        } finally {
+            askButton.disabled = false;
+            askButton.innerText = 'Ask Agent';
+            responseArea.scrollTop = responseArea.scrollHeight;
+        }
+    }
+</script>
+</body>
+</html>

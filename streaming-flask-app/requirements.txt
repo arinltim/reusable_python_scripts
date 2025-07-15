@@ -1,0 +1,17 @@
+# Install with: pip install -r requirements.txt
+
+flask
+gunicorn
+google-generativeai
+openai-whisper
+streamlink
+selenium
+numpy  # Whisper dependency
+torch  # Whisper dependency
+torchaudio # Whisper dependency
+ffmpeg-python # Sometimes needed by Whisper
+werkzeug
+scenedetect
+imagehash
+pillow
+waitress

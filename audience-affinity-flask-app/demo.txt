@@ -1,0 +1,58 @@
+Demo Script: The Audience Intelligence Platform
+Introduction (The Hook)
+(Time: ~30 seconds)
+
+"Good morning/afternoon. We all know that understanding your audience is critical, but the real challenge is turning fragmented data into actionable strategy quickly.
+
+Today, I’ll show you how our AI-driven platform solves this, moving from high-level analysis to on-demand audience creation and activation in minutes, not weeks."
+
+Part 1: Use Case 1 - Understanding Your Existing Audience
+(Time: ~1 minute)
+
+"First, let's look at understanding the customer segments you already have.
+
+(Show the Use Case 1 dashboard)
+
+On the left is a map of your entire user base, which our machine learning has automatically grouped into distinct behavioral clusters.
+
+Now, watch what happens when I select a segment, for example, Cluster 2.
+
+(Select a cluster from the dropdown)
+
+Instantly, our platform uses Generative AI to analyze this group and provides three critical insights:
+
+(Click 'Persona' Tab) It generates a dynamic persona, telling us in plain English who this segment is.
+
+(Click 'Business Value' Tab) It quantifies their business value, showing their CLV and predicted churn risk, along with AI-powered strategic recommendations.
+
+(Click 'Activation' Tab) And finally, it gives us an actionable media plan, showing the most effective channels to reach them for maximum ROI.
+
+This gives you an incredibly deep understanding of your known segments. But what if you want to find a completely new audience?"
+
+Part 2: Use Case 2 - Creating New Audiences Instantly
+(Time: ~1.5 minutes)
+
+"This brings us to our next-generation Prompt-to-Audience Engine.
+
+(Show the Use Case 2 dashboard)
+
+Instead of just analyzing pre-defined groups, here we can create segments from scratch using simple commands. Let's say we want to launch a new product for 'urban professionals who are interested in sustainable living'.
+
+(Type the query into the search bar and click 'Create Segment')
+
+In seconds, the system uses GenAI and a vector database to understand the intent behind my words and finds the exact users who fit this conceptual profile. You can see them instantly highlighted on the Audience Map.
+
+(Point to the right-hand sidebar)
+
+And immediately, the AI has generated a new persona for this custom segment, suggested related audiences to explore, and with one more click...
+
+(Click 'Generate Campaign Starters')
+
+...it can even brainstorm targeted ad copy and email subject lines, ready for your marketing team. From here, we can launch the campaign with the 'Activate Segment' button."
+
+Conclusion (The Unique Proposition)
+(Time: ~30 seconds)
+
+"So, what we've just demonstrated is a seamless workflow from analysis to on-demand creation and activation.
+
+Our unique proposition is delivering "Strategy-to-Activation" at speed. We empower your teams to go from a strategic question—like 'who would buy our new product?'—to a fully analyzed, targetable, and activated audience in minutes. This is about making data-driven decisions at the speed of your business."

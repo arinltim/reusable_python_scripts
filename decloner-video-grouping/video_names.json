@@ -1,0 +1,90 @@
+{
+	"correlationId": "1729371472210",
+	"videos": [
+		"VID_TE268MI",
+		"VID_SP616NG",
+		"VID_TH978ZI",
+		"VID_CA638LE",
+		"VID_TI757XL",
+		"VID_TI361NW",
+		"VID_TH815TN",
+		"VID_CA331FE",
+		"VID_CA796HV",
+		"VID_TH949OA",
+		"VID_TH88LU",
+		"VID_TE958BX",
+		"VID_SP789SY"
+	],
+	"comparisons": {
+		"tag_59WH8_3": [
+			{
+				"inspectedVideo": "VID_CA638LE",
+				"referenceVideo": "VID_CA331FE",
+				"videoNamesSimilarityPercentage": 87
+			},
+			{
+				"inspectedVideo": "VID_CA638LE",
+				"referenceVideo": "VID_CA796HV",
+				"videoNamesSimilarityPercentage": 85
+			},
+			{
+				"inspectedVideo": "VID_CA331FE",
+				"referenceVideo": "VID_CA796HV",
+				"videoNamesSimilarityPercentage": 98
+			}
+		],
+		"tag_LYUK4_2": [
+			{
+				"inspectedVideo": "VID_SP616NG",
+				"referenceVideo": "VID_SP789SY",
+				"videoNamesSimilarityPercentage": 98
+			}
+		],
+		"tag_2L6XA_2": [
+			{
+				"inspectedVideo": "VID_TE268MI",
+				"referenceVideo": "VID_TE958BX",
+				"videoNamesSimilarityPercentage": 98
+			}
+		],
+		"tag_NFOLX_4": [
+			{
+				"inspectedVideo": "VID_TH88LU",
+				"referenceVideo": "VID_TH978ZI",
+				"videoNamesSimilarityPercentage": 76
+			},
+			{
+				"inspectedVideo": "VID_TH88LU",
+				"referenceVideo": "VID_TH815TN",
+				"videoNamesSimilarityPercentage": 78
+			},
+			{
+				"inspectedVideo": "VID_TH88LU",
+				"referenceVideo": "VID_TH949OA",
+				"videoNamesSimilarityPercentage": 95
+			},
+			{
+				"inspectedVideo": "VID_TH978ZI",
+				"referenceVideo": "VID_TH815TN",
+				"videoNamesSimilarityPercentage": 97
+			},
+			{
+				"inspectedVideo": "VID_TH978ZI",
+				"referenceVideo": "VID_TH949OA",
+				"videoNamesSimilarityPercentage": 76
+			},
+			{
+				"inspectedVideo": "VID_TH815TN",
+				"referenceVideo": "VID_TH949OA",
+				"videoNamesSimilarityPercentage": 78
+			}
+		],
+		"tag_UGY85_2": [
+			{
+				"inspectedVideo": "VID_TI757XL",
+				"referenceVideo": "VID_TI361NW",
+				"videoNamesSimilarityPercentage": 98
+			}
+		]
+	}
+}

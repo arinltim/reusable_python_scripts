@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Local AI Assistant POC</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+        #chatbox { border: 1px solid #ccc; height: 400px; overflow-y: scroll; padding: 10px; margin-bottom: 10px; }
+        #userInput { width: 80%; padding: 10px; }
+        #sendButton { width: 18%; padding: 10px; }
+        .user-msg { text-align: right; color: blue; }
+        .bot-msg { text-align: left; color: green; }
+    </style>
+</head>
+<body>
+<h3>AI Assistant for Master Data (Local Demo)</h3>
+<div id="chatbox"></div>
+<input type="text" id="userInput" placeholder="e.g., Create cost center 'Marketing' with ID CC01 and manager 'Bob'">
+<button id="sendButton">Send</button>
+
+<script>
+    document.getElementById('sendButton').addEventListener('click', sendMessage);
+    document.getElementById('userInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    async function sendMessage() {
+        const userInput = document.getElementById('userInput');
+        const message = userInput.value;
+        if (message.trim() === '') return;
+
+        appendMessage(message, 'user-msg');
+        userInput.value = '';
+
+        // Send message to Flask backend
+        const response = await fetch('/process_message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: message })
+        });
+
+        const data = await response.json();
+        appendMessage(data.reply, 'bot-msg');
+    }
+
+    function appendMessage(msg, className) {
+        const chatbox = document.getElementById('chatbox');
+        const div = document.createElement('div');
+        div.className = className;
+        div.innerText = msg;
+        chatbox.appendChild(div);
+        chatbox.scrollTop = chatbox.scrollHeight;
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+### How to Set Up and Run This POC
+
+Follow these steps carefully to get the application running on your local machine.
+
+**Step 1: Create the Directory Structure**
+
+You must create a folder for your project and a `templates` subfolder inside it. Your file structure must look exactly like this:
+
+```
+your-project-folder/
+├── app.py
+└── templates/
+└── index.html
+```
+
+**Step 2: Install Required Libraries**
+
+Open your terminal or command prompt and install all the necessary Python libraries:
+
+```bash
+pip install Flask pandas seaborn matplotlib google-generativeai
+```
+
+**Step 3: Get and Set Your Gemini API Key**
+
+1.  Go to the [Google AI Studio](https://aistudio.google.com/app/apikey) to get your API key.
+2.  Set this key as an environment variable in your terminal. This is a secure way to handle keys without hardcoding them.
+* **On macOS/Linux:**
+```bash
+export GEMINI_API_KEY='YOUR_API_KEY_HERE'
+```
+* **On Windows (Command Prompt):**
+```bash
+set GEMINI_API_KEY=YOUR_API_KEY_HERE
+```
+* **On Windows (PowerShell):**
+```powershell
+$env:GEMINI_API_KEY="YOUR_API_KEY_HERE"
+```
+**Important:** You must run the `python app.py` command from the *same terminal session* where you set the environment variable.
+
+**Step 4: Run the Application**
+
+Navigate your terminal to your project folder (`your-project-folder/`) and run the Flask app:
+
+```bash
+python app.py
+```
+
+**Step 5: View in Browser**
+
+Open your web browser and go to the following address:
+
+**`http://127.0.0.1:5000`**
+
+
+
+Question/Focus Area	How the Code Handles It
+1. Daily Average Volume	The AI recognizes the intent for "average daily rate" and triggers the calculate_daily_average() function, which generates a Bar Chart comparing the average daily article output for each publication.
+2. Yearly Volume / Licensable	The AI identifies the need for licensable analysis and triggers the calculate_yearly_licensable() function. This uses the is_licensable data field to create a Stacked Bar Chart showing the mix of licensable vs. non-licensable content per brand.
+3. Daily Volume Trend	The AI is trained to recognize "daily trend" questions. This uses the general-purpose charting logic to group all articles by their publish_date, count them, and generate a Line Chart showing publishing activity over time.
+4. WSJ Cleanup Details	The AI detects keywords like "audit" or "cleanup" and triggers the audit_data_quality() function. This uses the data_quality_issue field to create a Pie Chart that breaks down the content quality for the specified publication (e.g., WSJ).
+5. Opinion Content Analysis	When asked about "opinion" or "editorial" content, the AI triggers the analyze_opinion_content() function. This uses the content_type field to generate a Stacked Bar Chart comparing the content mix across publications.
+6. WSJ All Categories	The code explicitly checks if the question contains "WSJ" and "Categories". It then calls the get_category_breakdown() function, which filters for 'Wall Street Journal' and generates a Bar Chart of its content topics.
+7. WSJ & NYPost Summary	The code detects when both "WSJ" and "NYPost" are in the query and calls the compare_publications() function. This generates a comparative Bar Chart showing the total article volume for each.
+8. NYPost Categories	Similar to the WSJ query, the code checks for "NYPost" and "Categories" and calls the same get_category_breakdown() function, but this time it filters for 'New York Post' and creates a Bar Chart of its topics.

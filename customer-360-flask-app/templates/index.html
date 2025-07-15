@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid AI Look-Alike Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #4f46e5;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+<div class="container mx-auto p-4 md:p-8">
+
+    <header class="text-center mb-8">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Hybrid AI Look-Alike Analyzer 🤖</h1>
+        <p class="mt-2 text-lg text-gray-600">Score a profile with a predictive model, then enrich it with Generative AI.</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-bold mb-6">Enter Customer Profile</h2>
+            <form id="profile-form" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label for="age" class="block text-sm font-medium text-gray-700">Age</label>
+                        <input type="number" name="age" value="42" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="total_spend" class="block text-sm font-medium text-gray-700">Total Spend ($)</label>
+                        <input type="number" step="0.01" name="total_spend" value="650.75" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="purchase_frequency" class="block text-sm font-medium text-gray-700">Purchase Frequency</label>
+                        <input type="number" name="purchase_frequency" value="9" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="avg_session_duration_min" class="block text-sm font-medium text-gray-700">Avg. Session (mins)</label>
+                        <input type="number" step="0.1" name="avg_session_duration_min" value="15.2" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label for="ads_clicked_last_30d" class="block text-sm font-medium text-gray-700">Ads Clicked (30d)</label>
+                        <input type="number" name="ads_clicked_last_30d" value="12" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div>
+                    <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
+                    <select name="location" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option>New York, NY</option><option>Los Angeles, CA</option><option>Chicago, IL</option><option>Houston, TX</option><option selected>Phoenix, AZ</option><option>Austin, TX</option><option>Miami, FL</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="primary_interest" class="block text-sm font-medium text-gray-700">Primary Interest</label>
+                    <select name="primary_interest" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option>Tech Gadgets</option><option>Sustainable Living</option><option>Fitness & Wellness</option><option>Travel & Outdoors</option><option selected>Finance & Investing</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="last_purchase_category" class="block text-sm font-medium text-gray-700">Last Purchase Category</label>
+                    <select name="last_purchase_category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <option selected>Electronics</option><option>Home Goods</option><option>Apparel</option><option>Books</option><option>Health</option>
+                    </select>
+                </div>
+                <div class="pt-4">
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">Analyze Profile</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="results-panel" class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+        </div>
+    </div>
+</div>
+
+<script>
+    const form = document.getElementById('profile-form');
+    const resultsPanel = document.getElementById('results-panel');
+
+    // Initial state for the results panel
+    resultsPanel.innerHTML = `
+        <div class="h-full flex flex-col items-center justify-center text-center text-gray-500">
+            <h2 class="text-2xl font-bold mb-6">Analysis Results</h2>
+            <p>Submit a profile to see the analysis.</p>
+        </div>
+    `;
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent the default page reload
+
+        // Show a loading state
+        resultsPanel.innerHTML = `
+            <div class="h-full flex flex-col items-center justify-center text-center text-gray-500">
+                <h2 class="text-2xl font-bold mb-6">Analyzing...</h2>
+                <div class="spinner"></div>
+            </div>
+        `;
+
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        // Convert numeric strings to actual numbers
+        Object.keys(data).forEach(key => {
+            if (!isNaN(data[key]) && data[key] !== '') {
+                data[key] = Number(data[key]);
+            }
+        });
+
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'An unknown error occurred.');
+            }
+
+            const result = await response.json();
+
+            // Populate the panel with the results
+            const scorePercentage = (result.score * 100).toFixed(0);
+            resultsPanel.innerHTML = `
+                <h2 class="text-2xl font-bold mb-6">Analysis Results</h2>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-500 uppercase tracking-wider">Predictive Score</h3>
+                        <div class="bg-gray-100 p-4 rounded-lg mt-2 text-center">
+                            <p class="text-sm text-gray-600">Look-Alike Score</p>
+                            <p class="text-5xl font-bold text-indigo-600">${scorePercentage}%</p>
+                            <p class="text-sm text-gray-600">Similarity to High-Value Customers</p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-500 uppercase tracking-wider">Generative AI Enrichment</h3>
+                        <div class="bg-indigo-50 p-4 rounded-lg mt-2 space-y-3 prose prose-sm max-w-none">
+                            ${result.persona}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        } catch (error) {
+            resultsPanel.innerHTML = `
+                <h2 class="text-2xl font-bold mb-6">Error</h2>
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
+                    <p class="font-bold">Could not analyze profile:</p>
+                    <p>${error.message}</p>
+                </div>
+            `;
+        }
+    });
+</script>
+</body>
+</html>

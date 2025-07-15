@@ -1,0 +1,12 @@
+# Requirements
+
+matplotlib
+seaborn
+flask
+gunicorn
+google-generativeai
+plotly
+wordcloud
+kaleido
+faiss-cpu
+sentence-transformers

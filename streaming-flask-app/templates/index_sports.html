@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #clips-container::-webkit-scrollbar { width: 8px; }
+        #clips-container::-webkit-scrollbar-track { background: #1f2937; }
+        #clips-container::-webkit-scrollbar-thumb { background-color: #4b5563; }
+        .clip-card { transition: background-color 0.2s ease-in-out; }
+        .clip-card:hover { background-color: #374151; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white overflow-y-hidden">
+
+<div class="flex flex-col h-screen">
+    <header class="p-4 border-b border-gray-700 flex-shrink-0">
+        <h1 class="text-2xl font-bold text-white">Sports Analyzer</h1>
+    </header>
+
+    <div class="flex flex-grow overflow-hidden">
+        <div class="w-3/4 p-4 flex flex-col">
+            <div class="bg-black rounded-lg shadow-2xl overflow-hidden flex-grow flex items-center justify-center">
+                <video id="mainVideo" class="max-w-full max-h-full" src="/static/USA-vs-Mexico.mp4" controls autoplay muted></video>
+            </div>
+        </div>
+
+        <div class="w-1/4 border-l border-gray-700 flex flex-col">
+            <h2 class="text-xl font-semibold p-4 border-b border-gray-700 flex-shrink-0">Detected Moments</h2>
+            <div id="clips-container" class="flex-grow overflow-y-auto p-4 space-y-4">
+                <p id="no-clips-message" class="text-gray-500 mt-4">Analyzing game footage for moments...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="clipModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden z-50">
+    <div class="bg-gray-800 rounded-lg shadow-xl w-11/12 md:w-3/4 lg:w-1/2 max-w-4xl relative">
+        <button onclick="closeModal()" class="absolute -top-3 -right-3 bg-red-600 text-white rounded-full w-8 h-8 text-xl font-bold">&times;</button>
+        <video id="modalVideo" class="w-full rounded-t-lg" controls autoplay></video>
+        <div class="p-4">
+            <h3 id="modalCategory" class="text-xl font-bold"></h3>
+            <p id="modalSummary" class="text-gray-300 mt-2"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const clipsContainer = document.getElementById('clips-container');
+    const noClipsMessage = document.getElementById('no-clips-message');
+
+    function addClipToUI(clip) {
+        noClipsMessage.classList.add('hidden');
+        const badgeColorClass = 'bg-green-600'; // All scores will be green
+        const thumbnailUrl = `/categorized_clips_sports/${clip.thumb_path}`;
+
+        const clipCard = document.createElement('div');
+        clipCard.className = 'clip-card bg-gray-800 rounded-lg overflow-hidden shadow-md cursor-pointer flex flex-col';
+        clipCard.onclick = () => openModal(clip);
+
+        clipCard.innerHTML = `
+            <div class="relative">
+                <img src="${thumbnailUrl}" alt="${clip.category}" class="w-full h-auto object-cover bg-gray-700">
+                <div class="absolute top-2 left-2">
+                    <span class="text-xs font-bold ${badgeColorClass} text-white px-2 py-1 rounded-full shadow-lg">${clip.category}</span>
+                </div>
+            </div>
+            <div class="p-3">
+                <p class="text-sm text-gray-200 leading-snug">${clip.summary}</p>
+                <p class="text-xs text-gray-500 mt-2 text-right">${clip.timestamp}</p>
+            </div>
+        `;
+        clipsContainer.prepend(clipCard);
+    }
+
+    // [CHANGED] openModal now uses `video_path` which is consistent with before
+    function openModal(clip) {
+        modalCategory.textContent = clip.category;
+        modalSummary.textContent = clip.summary;
+        modalVideo.src = `/categorized_clips_sports/${clip.video_path}`;
+        modal.classList.remove('hidden');
+    }
+
+    // [CHANGED] setupLiveStream function is no longer needed and has been removed.
+    function setupSse() {
+        const eventSource = new EventSource("/stream");
+        eventSource.onmessage = function (event) {
+            try {
+                const clip = JSON.parse(event.data);
+                addClipToUI(clip);
+            } catch (e) { console.error("Error processing clip data:", e); }
+        };
+        eventSource.onerror = function(err) { console.error("EventSource failed:", err); };
+    }
+
+    async function loadInitialClips() {
+        try {
+            const response = await fetch('/initial-clips');
+            const clips = await response.json();
+            clips.forEach(clip => addClipToUI(clip));
+        } catch(error) { console.error("Could not load initial clips:", error); }
+    }
+
+    const modal = document.getElementById('clipModal');
+    const modalVideo = document.getElementById('modalVideo');
+    const modalCategory = document.getElementById('modalCategory');
+    const modalSummary = document.getElementById('modalSummary');
+    function closeModal() { modal.classList.add('hidden'); modalVideo.pause(); modalVideo.src = ''; }
+
+    // Start the process when the page loads
+    window.onload = () => {
+        setupSse();
+        loadInitialClips();
+    };
+</script>
+</body>
+</html>

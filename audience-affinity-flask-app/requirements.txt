@@ -1,0 +1,10 @@
+# Install with: pip install -r requirements.txt
+
+flask
+pandas
+faker
+scikit-learn
+plotly
+joblib
+google-generativeai
+
