@@ -1,5 +1,6 @@
 # app.run(host='0.0.0.0', port=5000, debug=True)
 
+# app.py
 import os
 import json
 import uuid
@@ -26,14 +27,9 @@ except Exception as e:
     generative_model = None
 
 
-# --- Identity Resolution Logic (with the definitive scoring function) ---
-
+# --- Identity Resolution Logic (Unchanged) ---
 def calculate_match_score(rec1, rec2):
-    """
-    **DEFINITIVE SCORING LOGIC**
-    This version uses clear, high-confidence rules to match records.
-    """
-    # Standardize attributes for comparison
+    """Definitive scoring logic using high-confidence rules."""
     email1 = rec1.get('email', '').lower()
     email2 = rec2.get('email', '').lower()
     phone1 = rec1.get('phone_number')
@@ -41,20 +37,11 @@ def calculate_match_score(rec1, rec2):
     name1 = rec1.get('customer_name', f"{rec1.get('first_name', '')} {rec1.get('last_name', '')}").strip().lower()
     name2 = rec2.get('customer_name', f"{rec2.get('first_name', '')} {rec2.get('last_name', '')}").strip().lower()
 
-    # Rule 1: Exact match on a unique identifier is a 100% match.
-    if email1 and email1 == email2:
-        return 100
-    if phone1 and phone1 == phone2:
-        return 100
-
-    # Rule 2: A nearly perfect name match is a very strong signal (e.g., to link different emails).
-    if name1 and name2 and fuzz.token_sort_ratio(name1, name2) > 95:
-        return 80  # This score is high enough to pass the threshold on its own.
-
-    # If no high-confidence rules are met, they are not a match.
+    if email1 and email1 == email2: return 100
+    if phone1 and phone1 == phone2: return 100
+    if name1 and name2 and fuzz.token_sort_ratio(name1, name2) > 95: return 80
     return 0
 
-# The graph traversal and golden record creation logic remain the same, as they are correct.
 def create_golden_record(cluster, all_records_flat):
     golden = {'c360_id': f'c360_{uuid.uuid4().hex[:12]}', 'source_records': {}}
     all_emails, all_names, all_phones = set(), set(), set()
@@ -78,8 +65,7 @@ def create_golden_record(cluster, all_records_flat):
 def resolve_identities_graph(all_records):
     num_records = len(all_records)
     adj = defaultdict(list)
-    match_threshold = 75  # Set a clear, high-confidence threshold
-
+    match_threshold = 75
     for i in range(num_records):
         for j in range(i + 1, num_records):
             source1, rec1 = all_records[i]
@@ -87,7 +73,6 @@ def resolve_identities_graph(all_records):
             if calculate_match_score(rec1, rec2) >= match_threshold:
                 adj[i].append(j)
                 adj[j].append(i)
-
     visited = [False] * num_records
     clusters = []
     for i in range(num_records):
@@ -106,7 +91,7 @@ def resolve_identities_graph(all_records):
     return [create_golden_record(cluster, all_records) for cluster in clusters]
 
 
-# --- Generative AI Enrichment (Unchanged) ---
+# --- Generative AI Enrichment ---
 def get_batch_c360_personas(profiles):
     if not generative_model: return []
     profiles_for_prompt = [{
@@ -136,7 +121,7 @@ def get_batch_c360_personas(profiles):
         return []
 
 
-# --- Flask Routes (Unchanged) ---
+# --- Flask Routes (Updated with Chunking Logic) ---
 @app.route('/')
 def index():
     with open(RAW_DATA_FILE, 'r') as f:
@@ -145,6 +130,7 @@ def index():
 
 @app.route('/resolve-and-enrich')
 def resolve_and_enrich():
+    """API endpoint that performs resolution and enriches with GenAI."""
     with open(RAW_DATA_FILE, 'r') as f:
         raw_data = json.load(f)
     all_records = []
@@ -152,12 +138,25 @@ def resolve_and_enrich():
         for record in records:
             all_records.append((source, record))
 
+    # 1. Resolve all identities first
     golden_records = resolve_identities_graph(all_records)
 
-    enriched_personas = get_batch_c360_personas(golden_records)
-    enriched_map = {p['c360_id']: p['persona_summary'] for p in enriched_personas}
+    # 2. **PERFORMANCE FIX:** Process personas in smaller chunks to keep API calls fast.
+    batch_size = 5  # Process 5 profiles per API call. A good balance.
+    all_enriched_personas = []
+
+    print(f"Enriching {len(golden_records)} profiles in chunks of {batch_size}...")
+    for i in range(0, len(golden_records), batch_size):
+        chunk = golden_records[i:i + batch_size]
+        print(f"  - Processing chunk {i//batch_size + 1}...")
+        enriched_chunk = get_batch_c360_personas(chunk)
+        all_enriched_personas.extend(enriched_chunk)
+    print("✅ Enrichment complete.")
+
+    # 3. Merge the enriched data back into the golden records
+    enriched_map = {p['c360_id']: p['persona_summary'] for p in all_enriched_personas}
     for record in golden_records:
-        record['persona_summary'] = enriched_map.get(record['c360_id'], "<p>Error: Persona not generated.</p>")
+        record['persona_summary'] = enriched_map.get(record['c360_id'], "<p>Error: Persona not generated for this profile.</p>")
 
     return jsonify(golden_records)
 

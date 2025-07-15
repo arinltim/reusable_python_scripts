@@ -32,38 +32,50 @@
     <div class="mb-10">
         <h2 class="text-2xl font-bold mb-4 border-b pb-2">Step 1: Raw Data from Source Systems</h2>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
             <!-- E-commerce Data -->
-            <div class="bg-white p-4 rounded-lg shadow">
-                <h3 class="font-bold text-lg text-blue-700 mb-2">E-commerce Platform</h3>
-                {% for rec in raw_data.ecommerce %}
-                <div class="text-xs p-2 mb-2 bg-blue-50 rounded border border-blue-200">
-                    {% for key, value in rec.items() %}
-                    <div><strong>{{ key }}:</strong> {{ value }}</div>
+            <div class="bg-white p-4 rounded-lg shadow flex flex-col">
+                <h3 class="font-bold text-lg text-blue-700 mb-2 flex-shrink-0">E-commerce Platform</h3>
+                <!-- **FIX:** Added a scrollable container with a fixed height -->
+                <div class="overflow-y-auto h-96 pr-2">
+                    {% for rec in raw_data.ecommerce %}
+                    <div class="text-xs p-2 mb-2 bg-blue-50 rounded border border-blue-200">
+                        {% for key, value in rec.items() %}
+                        <div><strong>{{ key }}:</strong> {{ value }}</div>
+                        {% endfor %}
+                    </div>
                     {% endfor %}
                 </div>
-                {% endfor %}
             </div>
+
             <!-- Mobile App Data -->
-            <div class="bg-white p-4 rounded-lg shadow">
-                <h3 class="font-bold text-lg text-green-700 mb-2">Mobile App</h3>
-                {% for rec in raw_data.mobile_app %}
-                <div class="text-xs p-2 mb-2 bg-green-50 rounded border border-green-200">
-                    {% for key, value in rec.items() %}
-                    <div><strong>{{ key }}:</strong> {{ value }}</div>
+            <div class="bg-white p-4 rounded-lg shadow flex flex-col">
+                <h3 class="font-bold text-lg text-green-700 mb-2 flex-shrink-0">Mobile App</h3>
+                <!-- **FIX:** Added a scrollable container with a fixed height -->
+                <div class="overflow-y-auto h-96 pr-2">
+                    {% for rec in raw_data.mobile_app %}
+                    <div class="text-xs p-2 mb-2 bg-green-50 rounded border border-green-200">
+                        {% for key, value in rec.items() %}
+                        <div><strong>{{ key }}:</strong> {{ value }}</div>
+                        {% endfor %}
+                    </div>
                     {% endfor %}
                 </div>
-                {% endfor %}
             </div>
+
             <!-- Marketing Data -->
-            <div class="bg-white p-4 rounded-lg shadow">
-                <h3 class="font-bold text-lg text-purple-700 mb-2">Marketing Platform</h3>
-                {% for rec in raw_data.marketing %}
-                <div class="text-xs p-2 mb-2 bg-purple-50 rounded border border-purple-200">
-                    {% for key, value in rec.items() %}
-                    <div><strong>{{ key }}:</strong> {{ value }}</div>
+            <div class="bg-white p-4 rounded-lg shadow flex flex-col">
+                <h3 class="font-bold text-lg text-purple-700 mb-2 flex-shrink-0">Marketing Platform</h3>
+                <!-- **FIX:** Added a scrollable container with a fixed height -->
+                <div class="overflow-y-auto h-96 pr-2">
+                    {% for rec in raw_data.marketing %}
+                    <div class="text-xs p-2 mb-2 bg-purple-50 rounded border border-purple-200">
+                        {% for key, value in rec.items() %}
+                        <div><strong>{{ key }}:</strong> {{ value }}</div>
+                        {% endfor %}
+                    </div>
                     {% endfor %}
                 </div>
-                {% endfor %}
             </div>
         </div>
     </div>
