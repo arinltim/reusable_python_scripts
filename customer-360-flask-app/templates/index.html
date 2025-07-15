@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hybrid AI Look-Alike Analyzer</title>
+    <title>Customer 360 Identity Resolution Demo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -17,150 +17,120 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        .prose-sm { font-size: 0.9rem; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800">
 <div class="container mx-auto p-4 md:p-8">
 
-    <header class="text-center mb-8">
-        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Hybrid AI Look-Alike Analyzer 🤖</h1>
-        <p class="mt-2 text-lg text-gray-600">Score a profile with a predictive model, then enrich it with Generative AI.</p>
+    <header class="text-center mb-10">
+        <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Customer 360: Identity Resolution & Enrichment</h1>
+        <p class="mt-2 text-lg text-gray-600">From fragmented source data to a unified, AI-powered customer view.</p>
     </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
-        <div class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
-            <h2 class="text-2xl font-bold mb-6">Enter Customer Profile</h2>
-            <form id="profile-form" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label for="age" class="block text-sm font-medium text-gray-700">Age</label>
-                        <input type="number" name="age" value="42" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label for="total_spend" class="block text-sm font-medium text-gray-700">Total Spend ($)</label>
-                        <input type="number" step="0.01" name="total_spend" value="650.75" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label for="purchase_frequency" class="block text-sm font-medium text-gray-700">Purchase Frequency</label>
-                        <input type="number" name="purchase_frequency" value="9" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label for="avg_session_duration_min" class="block text-sm font-medium text-gray-700">Avg. Session (mins)</label>
-                        <input type="number" step="0.1" name="avg_session_duration_min" value="15.2" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
-                    <div>
-                        <label for="ads_clicked_last_30d" class="block text-sm font-medium text-gray-700">Ads Clicked (30d)</label>
-                        <input type="number" name="ads_clicked_last_30d" value="12" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                    </div>
+    <!-- Step 1: Raw Data View -->
+    <div class="mb-10">
+        <h2 class="text-2xl font-bold mb-4 border-b pb-2">Step 1: Raw Data from Source Systems</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- E-commerce Data -->
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="font-bold text-lg text-blue-700 mb-2">E-commerce Platform</h3>
+                {% for rec in raw_data.ecommerce %}
+                <div class="text-xs p-2 mb-2 bg-blue-50 rounded border border-blue-200">
+                    {% for key, value in rec.items() %}
+                    <div><strong>{{ key }}:</strong> {{ value }}</div>
+                    {% endfor %}
                 </div>
-                <div>
-                    <label for="location" class="block text-sm font-medium text-gray-700">Location</label>
-                    <select name="location" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option>New York, NY</option><option>Los Angeles, CA</option><option>Chicago, IL</option><option>Houston, TX</option><option selected>Phoenix, AZ</option><option>Austin, TX</option><option>Miami, FL</option>
-                    </select>
+                {% endfor %}
+            </div>
+            <!-- Mobile App Data -->
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="font-bold text-lg text-green-700 mb-2">Mobile App</h3>
+                {% for rec in raw_data.mobile_app %}
+                <div class="text-xs p-2 mb-2 bg-green-50 rounded border border-green-200">
+                    {% for key, value in rec.items() %}
+                    <div><strong>{{ key }}:</strong> {{ value }}</div>
+                    {% endfor %}
                 </div>
-                <div>
-                    <label for="primary_interest" class="block text-sm font-medium text-gray-700">Primary Interest</label>
-                    <select name="primary_interest" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option>Tech Gadgets</option><option>Sustainable Living</option><option>Fitness & Wellness</option><option>Travel & Outdoors</option><option selected>Finance & Investing</option>
-                    </select>
+                {% endfor %}
+            </div>
+            <!-- Marketing Data -->
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="font-bold text-lg text-purple-700 mb-2">Marketing Platform</h3>
+                {% for rec in raw_data.marketing %}
+                <div class="text-xs p-2 mb-2 bg-purple-50 rounded border border-purple-200">
+                    {% for key, value in rec.items() %}
+                    <div><strong>{{ key }}:</strong> {{ value }}</div>
+                    {% endfor %}
                 </div>
-                <div>
-                    <label for="last_purchase_category" class="block text-sm font-medium text-gray-700">Last Purchase Category</label>
-                    <select name="last_purchase_category" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                        <option selected>Electronics</option><option>Home Goods</option><option>Apparel</option><option>Books</option><option>Health</option>
-                    </select>
-                </div>
-                <div class="pt-4">
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">Analyze Profile</button>
-                </div>
-            </form>
+                {% endfor %}
+            </div>
         </div>
+    </div>
 
-        <div id="results-panel" class="bg-white p-6 md:p-8 rounded-xl shadow-lg">
+    <!-- Step 2: Action Button -->
+    <div class="text-center my-10">
+        <button id="resolve-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 text-xl">
+            Resolve Identities & Build C360 Profiles
+        </button>
+    </div>
+
+    <!-- Step 3: Unified Profiles View -->
+    <div id="results-section" class="hidden">
+        <h2 class="text-2xl font-bold mb-4 border-b pb-2">Step 2: Unified & Enriched Customer 360 Profiles</h2>
+        <div id="results-container" class="space-y-6">
+            <!-- Results will be injected here -->
         </div>
     </div>
 </div>
 
 <script>
-    const form = document.getElementById('profile-form');
-    const resultsPanel = document.getElementById('results-panel');
+    const resolveBtn = document.getElementById('resolve-btn');
+    const resultsSection = document.getElementById('results-section');
+    const resultsContainer = document.getElementById('results-container');
 
-    // Initial state for the results panel
-    resultsPanel.innerHTML = `
-        <div class="h-full flex flex-col items-center justify-center text-center text-gray-500">
-            <h2 class="text-2xl font-bold mb-6">Analysis Results</h2>
-            <p>Submit a profile to see the analysis.</p>
-        </div>
-    `;
-
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Prevent the default page reload
-
-        // Show a loading state
-        resultsPanel.innerHTML = `
-            <div class="h-full flex flex-col items-center justify-center text-center text-gray-500">
-                <h2 class="text-2xl font-bold mb-6">Analyzing...</h2>
-                <div class="spinner"></div>
-            </div>
-        `;
-
-        const formData = new FormData(form);
-        const data = Object.fromEntries(formData.entries());
-
-        // Convert numeric strings to actual numbers
-        Object.keys(data).forEach(key => {
-            if (!isNaN(data[key]) && data[key] !== '') {
-                data[key] = Number(data[key]);
-            }
-        });
+    resolveBtn.addEventListener('click', async () => {
+        // Show loading state
+        resolveBtn.disabled = true;
+        resolveBtn.innerHTML = '<div class="spinner mx-auto"></div>';
+        resultsSection.classList.remove('hidden');
+        resultsContainer.innerHTML = '<p class="text-center text-gray-600">Resolving identities and enriching profiles with AI...</p>';
 
         try {
-            const response = await fetch('/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
+            const response = await fetch('/resolve-and-enrich');
+            if (!response.ok) throw new Error('Network response was not ok.');
+
+            const profiles = await response.json();
+
+            resultsContainer.innerHTML = ''; // Clear loading message
+
+            profiles.forEach(profile => {
+                const profileCard = document.createElement('div');
+                profileCard.className = 'grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-xl shadow-lg border';
+
+                // Left side: The structured golden record
+                let structuredDataHtml = `<h3 class="font-bold text-lg text-indigo-800 mb-3 col-span-full">${profile.canonical_name}</h3>`;
+                structuredDataHtml += '<div class="text-sm space-y-2">';
+                structuredDataHtml += `<p><strong>C360 ID:</strong> <span class="font-mono bg-gray-100 p-1 rounded">${profile.c360_id}</span></p>`;
+                structuredDataHtml += `<p><strong>All Emails:</strong> ${profile.all_emails.join(', ')}</p>`;
+                structuredDataHtml += `<p><strong>All Phones:</strong> ${profile.all_phones.join(', ')}</p>`;
+                structuredDataHtml += `<p><strong>Source Systems:</strong> ${Object.keys(profile.source_records).join(', ')}</p>`;
+                structuredDataHtml += '</div>';
+
+                // Right side: The AI-generated persona
+                let personaHtml = '<div class="bg-indigo-50 p-4 rounded-lg prose prose-sm max-w-none">';
+                personaHtml += profile.persona_summary;
+                personaHtml += '</div>';
+
+                profileCard.innerHTML = structuredDataHtml + personaHtml;
+                resultsContainer.appendChild(profileCard);
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'An unknown error occurred.');
-            }
-
-            const result = await response.json();
-
-            // Populate the panel with the results
-            const scorePercentage = (result.score * 100).toFixed(0);
-            resultsPanel.innerHTML = `
-                <h2 class="text-2xl font-bold mb-6">Analysis Results</h2>
-                <div class="space-y-6">
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-500 uppercase tracking-wider">Predictive Score</h3>
-                        <div class="bg-gray-100 p-4 rounded-lg mt-2 text-center">
-                            <p class="text-sm text-gray-600">Look-Alike Score</p>
-                            <p class="text-5xl font-bold text-indigo-600">${scorePercentage}%</p>
-                            <p class="text-sm text-gray-600">Similarity to High-Value Customers</p>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-500 uppercase tracking-wider">Generative AI Enrichment</h3>
-                        <div class="bg-indigo-50 p-4 rounded-lg mt-2 space-y-3 prose prose-sm max-w-none">
-                            ${result.persona}
-                        </div>
-                    </div>
-                </div>
-            `;
-
         } catch (error) {
-            resultsPanel.innerHTML = `
-                <h2 class="text-2xl font-bold mb-6">Error</h2>
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert">
-                    <p class="font-bold">Could not analyze profile:</p>
-                    <p>${error.message}</p>
-                </div>
-            `;
+            resultsContainer.innerHTML = `<p class="text-center text-red-600">Error: ${error.message}</p>`;
+        } finally {
+            resolveBtn.disabled = false;
+            resolveBtn.innerHTML = 'Resolve Identities & Build C360 Profiles';
         }
     });
 </script>

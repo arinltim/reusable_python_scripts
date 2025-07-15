@@ -8,3 +8,6 @@ joblib
 google-generativeai
 markdown2
 python-dotenv
+pandas
+thefuzz
+python-Levenshtein
