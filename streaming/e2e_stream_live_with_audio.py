@@ -1,6 +1,7 @@
 # Install dependencies:
 # pip install selenium streamlink openai-whisper
 # git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+import os
 
 import google.generativeai as genai
 import re
@@ -137,7 +138,8 @@ def transcription(path,location):
     return location
 
 def gemini(location,path):
-    genai.configure(api_key="AIzaSyA2YXUaYM3lwc0msb08ANZ-a8FbvpV--PE")
+    api_key = os.environ["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-2.0-flash")
     chat_session = model.start_chat(history=[])
 

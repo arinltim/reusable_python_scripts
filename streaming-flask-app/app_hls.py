@@ -57,7 +57,8 @@ def gemini_analysis(text_content: str, clip_filename: str) -> str:
     Analyzes the transcribed text using Gemini's JSON Mode for guaranteed
     valid JSON output.
     """
-    genai.configure(api_key="AIzaSyDUngYlgwM2HVLl4XQW1Px6-jRxDLwnEFU") # Replace with your key
+    api_key = os.environ["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key) # Replace with your key
 
     # 1. [NEW] Configure the model to use JSON mode.
     # This guarantees the model's entire response is a valid JSON string.

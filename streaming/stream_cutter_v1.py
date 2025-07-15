@@ -121,7 +121,8 @@ def gemini_analysis(text_content: str, clip_filename: str) -> str:
     Analyzes the transcribed text for weather or breaking news using Gemini.
     Returns the raw Gemini output.
     """
-    genai.configure(api_key="AIzaSyA2YXUaYM3lwc0msb08ANZ-a8FbvpV--PE") # REPLACE WITH YOUR ACTUAL API KEY
+    api_key = os.environ["GEMINI_API_KEY"]
+    genai.configure(api_key=api_key) # REPLACE WITH YOUR ACTUAL API KEY
     model = genai.GenerativeModel("gemini-1.5-flash")
 
     prompt_breaking_news = f"""
