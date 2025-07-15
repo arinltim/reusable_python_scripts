@@ -29,6 +29,7 @@ except Exception as e:
     model = None
 
 # --- 2. CURATED & ENRICHED KNOWLEDGE BASE ---
+# Engagement Score = (Time on Page in seconds * 0.5) + (Scroll Depth % * 1) + (Comments * 8) + (Shares * 10) + (Likes * 2)
 # This static list contains all necessary fields for all query types.
 knowledge_base_data = [
     {'id': 1, 'publication': 'Wall Street Journal', 'title': 'Global Tech Stocks Rally', 'publish_date': '2025-06-01', 'publish_hour': 9, 'topic': 'Finance', 'sub_topic': 'Stocks', 'engagement_score': 850, 'word_count': 1200, 'shares': 450, 'country_code': 'USA', 'keywords': ['tech', 'stocks', 'rally', 'inflation'], 'is_licensable': True, 'content_type': 'News', 'data_quality_issue': 'ok'},
