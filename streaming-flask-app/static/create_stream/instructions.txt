@@ -1,0 +1,9 @@
+Mimic live streaming........
+
+Run this first from a separate terminal and don't close it:
+python -m http.server 5000
+
+Then run this from a separate terminal and don't close it:
+ffmpeg -re -i oscars_show.webm -c:v libx264 -c:a aac -f hls -hls_time 4 -hls_list_size 5 -hls_flags delete_segments stream.m3u8
+
+Then run the app.py.

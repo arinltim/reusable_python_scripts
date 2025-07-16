@@ -47,7 +47,7 @@ print("SUCCESS: Enriched clustering model saved to 'clustering_pipeline.pkl'")
 
 # --- 2. Train and Save the Enriched Churn Prediction Model ---
 print("\n--- Training Enriched Churn Prediction Model ---")
-# Add the most impactful new features to the churn model
+# Added the most impactful new features to the churn model
 churn_features = [
     'avg_monthly_spend', 'last_seen_days_ago', 'support_tickets_raised',
     'household_size', 'education_level', 'homeowner_status', 'offline_purchase_intent'
