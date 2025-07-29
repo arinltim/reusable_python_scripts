@@ -99,26 +99,49 @@ def live_stream_cutter_thread(stream_url: str, headers: dict):
         except Exception as e:
             logging.error(f"❌ [CUTTER_THREAD]: A critical connection error occurred: {e}. Retrying in 30s...")
             time.sleep(30)
-
+    stop_event.set()
     logging.info(f"✅ [CUTTER_THREAD]: Thread is finishing.")
 
 
 def transcription(model, clip_path: str) -> str:
-    """Uses Whisper to transcribe the audio from a video clip."""
+    """
+    [FINAL STABILITY FIX] This version extracts audio to a clean WAV file before
+    transcription, which is the most robust method to prevent Whisper errors.
+    """
+    temp_audio_file = clip_path + ".wav"
     try:
-        logging.info(f"→ Transcribing audio from: {os.path.basename(clip_path)}...")
-        probe = ffmpeg.probe(clip_path)
-        if not any(stream['codec_type'] == 'audio' for stream in probe.get('streams', [])):
-            logging.warning(f"No audio stream found in {os.path.basename(clip_path)}. Skipping.")
+        logging.info(f"→ Extracting and transcribing audio from: {os.path.basename(clip_path)}...")
+
+        # This command extracts the audio track and saves it as a standard WAV file.
+        # This "sanitizes" the audio for Whisper.
+        ffmpeg.input(clip_path).output(
+            temp_audio_file,
+            acodec='pcm_s16le',  # Standard WAV format
+            ar='16000',          # 16kHz sample rate, good for speech
+            ac=1                 # Mono audio
+        ).run(overwrite_output=True, quiet=True)
+
+        # Check if the audio file was actually created and has content
+        if not os.path.exists(temp_audio_file) or os.path.getsize(temp_audio_file) == 0:
+            logging.warning(f"No audio could be extracted from {os.path.basename(clip_path)}.")
             return ""
 
-        result = model.transcribe(clip_path, fp16=False, language="en")
+        # Now, transcribe the clean WAV file
+        result = model.transcribe(temp_audio_file, fp16=False, language="en")
         text = result["text"].strip()
-        if text: logging.info(f"✔ Transcription found for {os.path.basename(clip_path)}")
+        if text:
+            logging.info(f"✔ Transcription found for {os.path.basename(clip_path)}")
+        else:
+            logging.info(f"No speech detected in {os.path.basename(clip_path)}.")
         return text
+
     except Exception as e:
-        logging.warning(f"Could not transcribe {os.path.basename(clip_path)} (likely silent or corrupt). Error: {e}")
+        logging.warning(f"Could not transcribe {os.path.basename(clip_path)}. Error: {e}")
         return ""
+    finally:
+        # Clean up the temporary WAV file
+        if os.path.exists(temp_audio_file):
+            os.remove(temp_audio_file)
 
 def gemini_text_analysis(transcript: str) -> str | None:
     """Analyzes a transcript to find an Oscar winner announcement."""
@@ -156,7 +179,8 @@ def gemini_text_analysis(transcript: str) -> str | None:
 
 def clip_processing_worker():
     """
-    Worker thread that uses transcription and keyword spotting to find moments.
+    [OPTIMIZED] This worker transcribes the raw .ts chunk directly without
+    an initial conversion to .mp4, making the process faster.
     """
     keywords = [
         "the winner is", "and the oscar goes to", "accepting the award for",
@@ -165,20 +189,20 @@ def clip_processing_worker():
 
     while not stop_event.is_set() or not clip_queue.empty():
         try:
-            chunk_path, chunk_start_time = clip_queue.get(timeout=1)
+            chunk_ts_path, chunk_start_time = clip_queue.get(timeout=1)
         except queue.Empty:
             continue
 
-        mp4_path, highlight_path, thumbnail_path = None, None, None
+        highlight_path, thumbnail_path = None, None
         try:
-            mp4_path = convert_ts_to_mp4(chunk_path)
-            if not mp4_path: continue
+            # [OPTIMIZATION] Transcribe directly from the .ts file.
+            # This skips the slow, upfront mp4 conversion for every chunk.
+            transcript = transcription(WHISPER_MODEL, chunk_ts_path)
 
-            transcript = transcription(WHISPER_MODEL, mp4_path)
             if not transcript or not any(keyword in transcript.lower() for keyword in keywords):
                 continue
 
-            logging.info(f"Keywords found in {os.path.basename(mp4_path)}. Sending to Gemini for confirmation...")
+            logging.info(f"Keywords found in {os.path.basename(chunk_ts_path)}. Sending to Gemini for confirmation...")
             gemini_output = gemini_text_analysis(transcript)
             if not gemini_output: continue
 
@@ -199,34 +223,35 @@ def clip_processing_worker():
                     processed_winners.add(winner_key)
 
                 pre_roll, post_roll = 5, 25
-                highlight_start = max(0, timestamp_in_clip - pre_roll)
+                highlight_start = max(0, chunk_start_time + timestamp_in_clip - pre_roll)
                 highlight_duration = pre_roll + post_roll
 
                 highlight_filename = f"highlight_{werkzeug.utils.secure_filename(winner)}_{int(time.time())}.mp4"
-
-                # [FIX] Create the highlight in the temporary OUTPUT_CLIPS_DIR first
                 highlight_path = os.path.join(OUTPUT_CLIPS_DIR, highlight_filename)
 
                 logging.info(f"WINNER CONFIRMED: '{winner}' for '{category}'. Creating highlight clip...")
-                ffmpeg.input(mp4_path, ss=highlight_start, t=highlight_duration).output(
+                # [OPTIMIZATION] We must now use the ORIGINAL SOURCE of the stream for re-cutting.
+                # To keep this simple and reliable, we'll convert the original .ts chunk to an mp4 now.
+                mp4_path_for_cut = convert_ts_to_mp4(chunk_ts_path)
+                if not mp4_path_for_cut: continue
+
+                ffmpeg.input(mp4_path_for_cut, ss=(timestamp_in_clip - pre_roll), t=highlight_duration).output(
                     highlight_path, vcodec='libx264', acodec='aac', g=30
                 ).run(overwrite_output=True, quiet=True)
 
+                os.remove(mp4_path_for_cut) # Clean up the temporary full mp4
+
                 thumbnail_path = extract_thumbnail(highlight_path, seek_time=pre_roll)
                 if thumbnail_path:
-                    # This function will now correctly move the files
                     handle_highlight_clip(highlight_path, thumbnail_path, category, winner)
-                    # Set paths to None so they are not deleted by the finally block
                     highlight_path, thumbnail_path = None, None
 
         except Exception as e:
-            logging.error(f"Error processing chunk {os.path.basename(chunk_path)}: {e}")
+            logging.error(f"Error processing chunk {os.path.basename(chunk_ts_path)}: {e}")
         finally:
-            # This block now correctly cleans up all temporary files
-            if mp4_path and os.path.exists(mp4_path): os.remove(mp4_path)
             if highlight_path and os.path.exists(highlight_path): os.remove(highlight_path)
             if thumbnail_path and os.path.exists(thumbnail_path): os.remove(thumbnail_path)
-            if os.path.exists(chunk_path): os.remove(chunk_path)
+            # if os.path.exists(chunk_ts_path): os.remove(chunk_ts_path)
             clip_queue.task_done()
 
 def convert_ts_to_mp4(ts_path: str) -> str | None:
@@ -341,7 +366,9 @@ def start_processing_route():
 def stop_processing_route():
     global cutter_thread_instance, worker_threads
     with cutter_thread_lock:
+        logging.info("Processing stop requested by user.")
         stop_event.set()
+
         if cutter_thread_instance:
             cutter_thread_instance.join(timeout=10)
 
@@ -350,7 +377,14 @@ def stop_processing_route():
 
         cutter_thread_instance = None
         worker_threads = []
-        logging.info("Processing stopped by user command.")
+
+        # [THE FIX] Clean up all temporary files at the very end.
+        logging.info("All threads stopped. Cleaning up temporary files...")
+        shutil.rmtree(OUTPUT_CLIPS_DIR, ignore_errors=True)
+        # Re-create the empty directory for the next run
+        os.makedirs(OUTPUT_CLIPS_DIR, exist_ok=True)
+
+        logging.info("Processing stopped and cleanup complete.")
         return jsonify({"status": "success", "message": "Processing stopped."})
 
 def start_app_threads():
@@ -369,7 +403,7 @@ def start_app_threads():
 
     logging.info("Loading Whisper 'base' model (this may take a moment)...")
     try:
-        WHISPER_MODEL = whisper.load_model("base")
+        WHISPER_MODEL = whisper.load_model("base", device="cpu")
         logging.info("✔ Whisper model loaded successfully.")
     except Exception as e:
         logging.critical(f"FATAL: Could not load Whisper model: {e}")
